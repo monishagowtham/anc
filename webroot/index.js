@@ -1,7 +1,7 @@
 const httpServer = require('http-server-with-default')
 const config = new httpServer.Config;
 
-config.port = 80
+config.port = 8000
 httpServer.onRequest = handleRequest
 httpServer.deploy( config )
 
