@@ -77,47 +77,10 @@ class Menu {
 
 }
 
-  static listToHtmlString(projects, id) {
-    var size = projects.length
-    if (size < 1) {
-      return '<p>No Carousel Items Provided</p>'
-      console.log('Error: No Carousel Items Provided')
-    }
-    var html = `<div id='${id}' class='carousel slide' data-ride='carousel'>`
-    html += "<ol class='carousel-indicators'>"
-    html += `<li data-target='#${id}' data-slide-to='0' class='active'></li>`
-    for (var i = 1; i < size; i++) {
-      html += `<li data-target='#${id}' data-slide-to='${i}'></li>`
-    }
-    html += "</ol><div class='carousel-inner'>"
-    var active = true
-    projects.forEach(function(project) {
-      html += project.toHtmlAsString(active)
-      active = false
-    })
-    html += '</div>'
-    html += `<a class="carousel-control-prev" href="#${id}" role="button" data-slide="prev">`
-    html += `<span class="carousel-control-prev-icon" aria-hidden="true"></span>`
-    html +=  '<span class="sr-only">Previous</span>'
-    html += `<a class="carousel-control-next" href="#${id}" role="button" data-slide="next">`
-    html += `<span class="carousel-control-next-icon" aria-hidden="true"></span>`
-    html +=  '<span class="sr-only">Next</span>'
-    html += '</div>'
-    return html
-  }
-}
-
-
 angular.module('spaghettiApp',[]).controller('ComponentController', ['$scope', '$sce', function ($scope, $sce) {
   var mainNavObject = new Menu()
     .add(new MenuItem("Home", "/"))
 	//.add(new MenuItem("Next item", "/location")) // keep adding more like this
-
-  var projects = [
-    new Project('Ancestry','/Projects/ancestry','/media/images/projects/ancestry.png','A school project I&#39;m using as filler for some reason','Find out more'),
-    new Project('Big Red Button','https://www.amazon.com/Big-Dome-Push-Button-Red/dp/B00CYGTH9I','/media/images/projects/button.jpg','A big red button. I don&#39;t have one of these.','Buy one'),
-    new Project('Fancy Keyboard','https://www.amazon.com/CORSAIR-RAPIDFIRE-Mechanical-Gaming-Keyboard/dp/B01D8H09TS','/media/images/projects/esport.jpg','I have a nice keyboard.','Buy one'),
-  ]
 
   $scope.mainNav = $sce.trustAsHtml(mainNavObject.toHtmlAsString())
   $scope.footer = $sce.trustAsHtml("<footer class='container'><p class='float-right'><a href='#'>Back to top</a></p><p>&copy; 2018 Somebody &middot; <a href='https://www.youtube.com/watch?v=7YvAYIJSSZY'>Privacy</a></p></footer>")
