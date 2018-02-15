@@ -14,5 +14,31 @@
 }
 
 .main-content {
-  margin-top: 75px;
+  width: 95vw;
+  margin: 75px auto;
+}
+
+.filter-form-item {
+  padding-top: 3px;
+}
+
+#graph {
+  float: left;
+  width: 45vw;
+}
+
+#graph-filter {
+  margin-left: 10px;
+  float: left;
+  width: 40vw;
+}
+
+#node-filter {
+  float: left;
+  width: 10vw;
+}
+
+#edge-filter {
+  float: left;
+  width: 10vw;
 }
