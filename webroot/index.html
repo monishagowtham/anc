@@ -43,13 +43,13 @@
             <div class="sub-filter" id="node-filter">
               <h8>People</h8>
               <div ng-repeat="name in tempNames">
-                <div class="filter-form-item"><input id="checkbox{{name}}" type="checkbox" name='NodeCheckbox' checked="true" value='{{name}}' ng-click='hideNodeCheckbox(name)'>{{name}}</input></div><br />
+                <div class="filter-form-item"><input id="checkbox{{name}}" type="checkbox" name='NodeCheckbox' ng-checked="!getFirstNodeWithLabel(name).hidden" value='{{name}}' ng-click='hideNodeCheckbox(name)'>{{name}}</input></div><br />
               </div>
             </div>
             <div class="sub-filter" id="edge-filter">
               <h8>Relationships</h8>
               <div ng-repeat="relationship in tempRelationships">
-                <div class="filter-form-item"><input id="checkbox{{relationship}}" type="checkbox" name='NodeCheckbox' checked="true" value='{relationship}}' ng-click='hideEdgeCheckbox(relationship)'>{{relationship}}</input></div><br />
+                <div class="filter-form-item"><input id="checkbox{{relationship}}" type="checkbox" name='NodeCheckbox' ng-checked="!getFirstEdgeWithLabel(relationship).hidden" value='{relationship}}' ng-click='hideEdgeCheckbox(relationship)'>{{relationship}}</input></div><br />
               </div>
             </div>
           </div>

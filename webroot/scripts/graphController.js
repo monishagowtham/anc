@@ -84,12 +84,12 @@ angular.module('spaghettiApp').controller('GraphController', ['$scope', function
 
   $scope.hideNodeCheckbox = function(label) {
     var checked = document.getElementById('checkbox' + label).checked
-    var edges = $scope.nodes.get({
+    var nodes = $scope.nodes.get({
       filter: function (node) {
         return (node.label == label)
       }
     })
-    edges.forEach(function(node){
+    nodes.forEach(function(node){
       var id = node.id
       $scope.nodes.update({id: id, hidden: !checked})
     })
@@ -123,6 +123,24 @@ angular.module('spaghettiApp').controller('GraphController', ['$scope', function
       var id = edge.id
       $scope.edges.update({id: id, hidden: !checked})
     })
+  }
+
+  $scope.getFirstNodeWithLabel = function(label) {
+    var nodes = $scope.nodes.get({
+      filter: function (node) {
+        return (node.label == label)
+      }
+    })
+    return nodes[0]
+  }
+
+  $scope.getFirstEdgeWithLabel = function(label) {
+    var edges = $scope.edges.get({
+      filter: function (edge) {
+        return (edge.label == label)
+      }
+    })
+    return edges[0]
   }
 
 }])
