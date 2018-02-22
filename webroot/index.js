@@ -4,6 +4,7 @@ const config = new httpServer.Config;
 config.port = 8000
 httpServer.onRequest = handleRequest
 httpServer.deploy( config )
+console.log("Kyle, the server is running on port " + config.port)
 
 /**
 * Called when a request is made to the http-server
@@ -13,10 +14,10 @@ httpServer.deploy( config )
 * @return true on completion
 */
 function handleRequest(request, response, serve) {
-  if (request.uri.path == '/example') {
+  if (request.uri.path == '/istheserverrunning') {
     serve(request, response, JSON.stringify({
       uri:request.uri,
-      message:'you found me',
+      message:'yes',
       query: request.query
     }))
     return true
