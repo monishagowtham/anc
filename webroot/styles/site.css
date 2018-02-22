@@ -24,13 +24,13 @@
 
 #graph {
   float: left;
-  width: 45vw;
+  width: 65vw;
 }
 
 #graph-filter {
   margin-left: 10px;
   float: left;
-  width: 40vw;
+  width: 30vw;
 }
 
 #node-filter {
