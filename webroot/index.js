@@ -5,7 +5,7 @@ const config = new httpServer.Config;
 config.port = 8000
 httpServer.onRequest = handleRequest
 httpServer.deploy( config )
-console.log("Kyle, the server is running on port " + config.port)
+console.log("The server is running on port " + config.port)
 
 /**
 * Called when a request is made to the http-server
