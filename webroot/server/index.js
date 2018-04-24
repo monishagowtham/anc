@@ -8,6 +8,11 @@ const PORT = process.env.PORT || 8005
 neo4j.createConnection('neo4j', '12345', function(session) {
   app.use(bodyParser.urlencoded({ extended: false }))
   app.use(bodyParser.json())
+  app.use((req, res, next) => {
+   res.header("Access-Control-Allow-Origin", "*");
+   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+   next();
+ })
 
   app.get('/api/hello', function(req, res){
     res.set('Content-Type', 'application/json')

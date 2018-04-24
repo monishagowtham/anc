@@ -3,7 +3,16 @@
  * Written by Austin Barrett
  */
 
-angular.module('spaghettiApp').controller('GraphController', ['$scope', function ($scope) {
+angular.module('spaghettiApp').controller('GraphController', ['$scope','$http', function ($scope,$http) {
+
+  $http({
+        method : "GET",
+        url : "http://localhost:8005/api/everything"
+    }).then(function mySuccess(response) {
+        console.log(response.data)
+    }, function myError(response) {
+        console.log("I can't believe you've done this.")
+    });
 
  // I had trouble getting ng-repeat to work properly with vis.DataSet, so
  // I added temporary lists of all values
