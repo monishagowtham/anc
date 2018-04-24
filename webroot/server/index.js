@@ -38,7 +38,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
     onCompleted: function () {
       //session.close()
       console.log('Record is: ', records)
-      res.send(JSON.stringify({message: "Done Kyle, I'm done", neoRecords: records}))
+      res.send(JSON.stringify({ neoRecords: records}))
     },
     onError: function (error) {
       console.log(error)
