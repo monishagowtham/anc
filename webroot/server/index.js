@@ -49,8 +49,8 @@ neo4j.createConnection('neo4j', '12345', function(session) {
         var rec = {
           type: record._fields[0].type,
           properties: record._fields[0].properties,
-          from: record._fields[1].properties.name,
-          to: record._fields[2].properties.name
+          from: record._fields[1].properties.id.low,
+          to: record._fields[2].properties.id.low
         }
         records.push(rec)
       },
