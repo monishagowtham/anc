@@ -13,9 +13,28 @@ angular.module('spaghettiApp').controller('GraphController', ['$scope','$http', 
     }, function myError(response) {
         console.log("I can't believe you've done this.")
     });
+    $http({
+          method : "GET",
+          url : "http://localhost:8005/api/nodes"
+      }).then(function mySuccess(response) {
+          console.log(response.data)            // need to send data to names list
+      }, function myError(response) {
+          console.log("I can't believe you've done this.")
+      });
+      $http({
+            method : "GET",
+            url : "http://localhost:8005/api/relationships"
+        }).then(function mySuccess(response) {
+            console.log(response.data)          // need to send data to relationshp list
+        }, function myError(response) {
+            console.log("I can't believe you've done this.")
+        });
+
 
  // I had trouble getting ng-repeat to work properly with vis.DataSet, so
  // I added temporary lists of all values
+
+
   $scope.tempNames = [
     'Alice',
     'Bob',
