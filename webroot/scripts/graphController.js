@@ -5,11 +5,19 @@
 
 angular.module('spaghettiApp').controller('GraphController', ['$scope','$http', function ($scope,$http) {
 
+    $scope.tempRelationships = []
+
   $http({
         method : "GET",
-        url : "http://localhost:8005/api/everything"
+        url : "http://localhost:8005/api/relationships"
     }).then(function mySuccess(response) {
         console.log(response.data)
+        response.data.neoRecords.map((neoRecord) => {
+          if (!($scope.tempRelationships.includes(neoRecord.type.trim().toLowerCase()))) {
+            $scope.tempRelationships.push(neoRecord.type.trim().toLowerCase())
+          }
+        })
+        console.log($scope.tempRelationships)
     }, function myError(response) {
         console.log("I can't believe you've done this.")
     });
@@ -24,15 +32,17 @@ angular.module('spaghettiApp').controller('GraphController', ['$scope','$http', 
     'Eve'
   ]
 
-  $scope.tempRelationships = [
-    'mother',
-    'son',
-    'brother',
-    'beneficiary',
-    'business partner',
-    'friend',
-    'acquaintance'
-  ]
+
+
+  // $scope.tempRelationships = [
+  //   'mother',
+  //   'son',
+  //   'brother',
+  //   'beneficiary',
+  //   'business partner',
+  //   'friend',
+  //   'acquaintance'
+  // ]
 
   $scope.nodes = new vis.DataSet([
     {id: 1, label: 'Alice', hidden: false},
