@@ -5,31 +5,49 @@
 
 angular.module('spaghettiApp').controller('GraphController', ['$scope','$http', function ($scope,$http) {
 
+  $scope.nodes = new vis.DataSet([])
+  $scope.edges = new vis.DataSet([])
+  var edgeid = 0
+
   $http({
         method : "GET",
         url : "http://localhost:8005/api/everything"
-    }).then(function mySuccess(response) {
+    })
+    .then(function mySuccess(response) {
         console.log(response.data)
-    }, function myError(response) {
+    },
+    function myError(response) {
         console.log("I can't believe you've done this.")
     });
-    $http({
+
+  $http({
           method : "GET",
           url : "http://localhost:8005/api/nodes"
-      }).then(function mySuccess(response) {
-          console.log(response.data)            // need to send data to names list
-      }, function myError(response) {
+      })
+      .then(function mySuccess(response) {
+        response.data.neoRecords.forEach(function(record){
+            $scope.nodes.add([{id: record.properties.id.low, label: record.properties.name, hidden: false}])
+        })
+      },
+      function myError(response) {
           console.log("I can't believe you've done this.")
       });
-      $http({
-            method : "GET",
-            url : "http://localhost:8005/api/relationships"
-        }).then(function mySuccess(response) {
-            console.log(response.data)          // need to send data to relationshp list
-        }, function myError(response) {
+
+  $http({
+          method : "GET",
+          url : "http://localhost:8005/api/relationships"
+        })
+        .then(function mySuccess(response) {
+          response.data.neoRecords.forEach(function(record){
+            $scope.edges.add([{id: edgeid, from: record.from, to: record.to, label: record.type, arrows: 'from', hidden: false}])
+            edgeid ++ // need to send data to relationshp list
+          });
+        },
+        function myError(response) {
             console.log("I can't believe you've done this.")
         });
 
+        console.log($scope.rawNodes)
 
  // I had trouble getting ng-repeat to work properly with vis.DataSet, so
  // I added temporary lists of all values
@@ -53,25 +71,9 @@ angular.module('spaghettiApp').controller('GraphController', ['$scope','$http', 
     'acquaintance'
   ]
 
-  $scope.nodes = new vis.DataSet([
-    {id: 1, label: 'Alice', hidden: false},
-    {id: 2, label: 'Bob', hidden: false},
-    {id: 3, label: 'Charlie', hidden: false},
-    {id: 4, label: 'David', hidden: false},
-    {id: 5, label: 'Eve', hidden: false}
-  ])
 
-  $scope.edges = new vis.DataSet([
-    {id: 0, from: 1, to: 2, label: 'mother', arrows: 'from', hidden: false},
-    {id: 1, from: 2, to: 1, label: 'son', arrows: 'from', hidden: false},
-    {id: 2, from: 1, to: 4, label: 'mother', arrows: 'from', hidden: false},
-    {id: 3, from: 4, to: 1, label: 'son', arrows: 'from', hidden: false},
-    {id: 4, from: 2, to: 4, label: 'brother', arrows:'to,from', hidden: false},
-    {id: 5, from: 4, to: 5, label: 'beneficiary', arrows: 'to', hidden: false},
-    {id: 6, from: 4, to: 5, label: 'business partner', arrows: 'to, from', hidden: false},
-    {id: 7, from: 2, to: 5, label: 'friend', arrows: 'to, from', hidden: false},
-    {id: 8, from: 1, to: 3, label: 'acquaintance', arrows: 'to, from', hidden: false}
-  ])
+
+
 
   var graph = document.getElementById('graph')
   $scope.data = {
