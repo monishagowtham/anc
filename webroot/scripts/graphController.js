@@ -19,6 +19,8 @@ angular.module('spaghettiApp').controller('GraphController', ['$scope','$http', 
         })
         console.log($scope.tempRelationships)
     }, function myError(response) {
+      console.log("Kyle, I can't believe you've done this.")
+    })
   $scope.nodes = new vis.DataSet([])
   $scope.edges = new vis.DataSet([])
   var edgeid = 0
@@ -32,7 +34,7 @@ angular.module('spaghettiApp').controller('GraphController', ['$scope','$http', 
     },
     function myError(response) {
         console.log("I can't believe you've done this.")
-    });
+    })
 
   $http({
           method : "GET",
