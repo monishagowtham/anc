@@ -38,6 +38,13 @@ angular.module('rtApp')
     return `rgba(${r},${g},${b},${a})`
   }
 
+  /* Function for Physics Toggle Button */
+  $scope.jiggleToggle = function() {
+    $scope.options.physics.enabled = !$scope.options.physics.enabled
+    console.log($scope.options)
+    $scope.network.setOptions($scope.options)
+  }
+
   /*
    * Declare empty arrays to fill with info from database
    */
@@ -158,7 +165,7 @@ angular.module('rtApp')
   }
   $scope.options = { physics : { enabled: true }}
   $scope.network = new vis.Network(graph, $scope.data, $scope.options)
-
+  setTimeout($scope.jiggleToggle,3000)
 
   /***************************************************************************
    * Helper Functions
@@ -169,14 +176,6 @@ angular.module('rtApp')
    */
   $scope.removeNode = function() {
     $scope.nodes.remove({id: document.getElementById('nodeId').value})
-  }
-
-  /* Function for Physics Toggle Button */
-
-  $scope.jiggleToggle = function() {
-    $scope.options.physics.enabled = !$scope.options.physics.enabled
-    console.log($scope.options)
-    $scope.network.setOptions($scope.options)
   }
   /*
    * This version was here too. Kept it for now in case I kept the wrong one

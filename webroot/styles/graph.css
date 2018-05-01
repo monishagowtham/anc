@@ -1,8 +1,17 @@
 #graph {
-      width: 60vw;
-      height: 80vh;
-      border: 1px solid lightgray;
-    }
+  position: relative;
+  width: 60vw;
+  float: left;
+  height: 100vh;
+  display: border-box;
+  border: 1px solid lightgray;
+}
 #nodeId {
   width: 20px;
+}
+#accordion {
+  padding-top: 75px;
+  width: 30vw;
+  height: 100%;
+  float: right;
 }

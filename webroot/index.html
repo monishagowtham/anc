@@ -31,14 +31,16 @@
       <div class="main-content">
         <div id="graph-controller-scope" ng-controller="GraphController as graph">
           <div id="graph"></div>
-          <div class="filter-form-item"><button ng-click="jiggleToggle()">Toggle Physics</button><input id="physicsToggle" /></div>
-          <div id="graph-filter">
-            <h6>Filters:</h6>
-            <div class="filter-form-item"><button ng-click="hideEdge()">Hide/Show Relationship</button> label: <input id="edgeLabel" /></div>
-            <div class="sub-filter" id="edge-filter">
-              <h8>Relationships</h8>
-              <div ng-repeat="relationship in filterRelationships">
-                <div class="filter-form-item"><input id="checkbox{{relationship}}" type="checkbox" name='NodeCheckbox' ng-checked="!getFirstEdgeWithLabel(relationship).hidden" value='{relationship}}' ng-click='hideType(relationship)'>{{relationship}}</input></div><br />
+          <div id="accordion">
+            <div class="filter-form-item"><button ng-click="jiggleToggle()">Toggle Physics</button><input id="physicsToggle" /></div>
+            <div id="graph-filter">
+              <h6>Filters:</h6>
+              <div class="filter-form-item"><button ng-click="hideEdge()">Hide/Show Relationship</button> label: <input id="edgeLabel" /></div>
+              <div class="sub-filter" id="edge-filter">
+                <h8>Relationships</h8>
+                <div ng-repeat="relationship in filterRelationships">
+                  <div class="filter-form-item"><input id="checkbox{{relationship}}" type="checkbox" name='NodeCheckbox' ng-checked="!getFirstEdgeWithLabel(relationship).hidden" value='{relationship}}' ng-click='hideType(relationship)'>{{relationship}}</input></div><br />
+                </div>
               </div>
             </div>
           </div>
