@@ -30,8 +30,20 @@ angular.module('rtApp')
   })
   .then(function mySuccess(response) {
     response.data.neoRecords.forEach(function(record){
+      var color
+      switch(record.type){
+        case "Person":
+          color = "rgba(250,175,175,1)"
+          break;
+        case "Tribe":
+          color = "rgba(225,225,125,1)"
+          break;
+        default:
+          color = "rgba(125,125,250,1)"
+          break;
+      }
         $scope.nodes.add([{id: record.properties.id.low,
-          label: record.properties.name, hidden: false}])
+          label: record.properties.name, color: color, hidden: false}])
     })
   },
   function myError(response) {
