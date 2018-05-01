@@ -7,24 +7,83 @@
   margin: auto;
 }
 
-.search-bar {
-  right: 0;
+a {
+  color: black;
+}
+
+.login-form {
+  right: 10px;
   position: absolute;
   margin-top: 0;
 }
 
 .main-content {
-  width: 95vw;
-  margin: 75px auto;
+  width: 100vw;
+  position: relative;
 }
 
-.filter-form-item {
-  padding-top: 3px;
+.sub-filter{
+  min-width: 100%;
+  min-height: 100%;
+  padding-left: 5%;
+  padding-right: 5%;
+  display: block;
 }
 
-#graph {
-  float: left;
-  width: 65vw;
+.filter-button {
+  border-radius: 0;
+  width: 100%;
+  background-color: white;
+  color: #444444;
+  border: 1px solid #444444;
+}
+
+.filter-button.active {
+  background-color: #444444 !important;
+  color: #dddddd !important;
+  border: 1px solid black !important;
+}
+
+.filter-button.active:hover {
+  background-color: #333333 !important;
+  color: default !important;
+}
+
+.top-bar {
+  box-shadow: 0 1px 2px;
+}
+
+.collapse-title {
+  color: #333;
+  font-weight: bold;
+}
+
+.card {
+  border-radius: 0;
+}
+
+#top-card {
+  border-radius: 4px 0 0 0;
+}
+
+#bottom-card {
+  border-radius: 0 0 0 4px;
+}
+
+.relationship-name {
+  width: 100%;
+}
+
+.relationship-name.negated {
+  color: lightgrey;
+  text-decoration: line-through;
+}
+.badge.negated {
+  background-color: lightgrey;
+}
+
+.relationship-count {
+  font-size: .65em;
 }
 
 #graph-filter {
@@ -41,4 +100,37 @@
 #edge-filter {
   float: left;
   width: 10vw;
+}
+
+.collapse {
+  height: auto;
+  width: auto;
+}
+
+.collapse.height {
+  position: relative;
+  height: 0;
+  overflow: hidden;
+  -webkit-transition: height 0.35s ease;
+  -moz-transition: height 0.35s ease;
+  -o-transition: height 0.35s ease;
+  transition: height 0.35s ease;
+}
+
+.collapse.width {
+  position: relative;
+  width: 0;
+  overflow: hidden;
+  -webkit-transition: width 0.35s ease;
+  -moz-transition: width 0.35s ease;
+  -o-transition: width 0.35s ease;
+  transition: width 0.35s ease;
+}
+
+.collapse.in.width {
+  width: auto;
+}
+
+.collapse.in.height {
+  height: auto;
 }

@@ -7,6 +7,44 @@ angular.module('rtApp')
         .controller('GraphController',['$scope','$http', ($scope,$http) => {
 
   /*
+   * Helper function for creating nodes. Converts rgba values to string.
+   */
+  function rgba(r, g, b, a) {
+    r = Math.round(r)
+    g = Math.round(g)
+    b = Math.round(b)
+
+    if (r < 0) {
+      r = 0
+    } else if (r > 255) {
+      r = 255
+    }
+    if (g < 0) {
+      g = 0
+    } else if (g > 255) {
+      g = 255
+    }
+    if (b < 0) {
+      b = 0
+    } else if (b > 255) {
+      b = 255
+    }
+    if (a < 0) {
+      a = 0
+    } else if (a > 1) {
+      a = 1
+    }
+
+    return `rgba(${r},${g},${b},${a})`
+  }
+
+  /* Function for Physics Toggle Button */
+  $scope.jiggleToggle = function() {
+    $scope.options.physics.enabled = !$scope.options.physics.enabled
+    $scope.network.setOptions($scope.options)
+  }
+
+  /*
    * Declare empty arrays to fill with info from database
    */
 
@@ -30,20 +68,39 @@ angular.module('rtApp')
   })
   .then(function mySuccess(response) {
     response.data.neoRecords.forEach(function(record){
-      var color
+      var color = {
+        r: 0,
+        g: 0,
+        b: 0,
+        a: 1
+      }
       switch(record.type){
         case "Person":
-          color = "rgba(250,175,175,1)"
+          color.r = 250
+          color.g = 175
+          color.b = 175
           break;
         case "Tribe":
-          color = "rgba(225,225,125,1)"
+          color.r = 225
+          color.g = 225
+          color.b = 125
           break;
         default:
-          color = "rgba(125,125,250,1)"
+          color.r = 125
+          color.g = 125
+          color.b = 250
           break;
       }
-        $scope.nodes.add([{id: record.properties.id.low,
-          label: record.properties.name, color: color, hidden: false}])
+      var colorObj = {
+        background: rgba(color.r,color.g,color.b,color.a),
+        border: rgba(color.r * .75,color.g * .75,color.b * .75,color.a),
+        highlight: {
+          background: rgba(color.r * .75,color.g * .75,color.b * .75,color.a),
+          border: rgba(color.r * .5625,color.g * .5625,color.b * .5625,color.a)
+        }
+      }
+      $scope.nodes.add([{id: record.properties.id.low,
+        label: record.properties.name, color: colorObj, hidden: false}])
     })
   },
   function myError(response) {
@@ -60,8 +117,23 @@ angular.module('rtApp')
   })
   .then(function mySuccess(response) {
     response.data.neoRecords.forEach(function(record){
-      $scope.edges.add([{id: edgeId, from: record.from, to: record.to,
-                        label: record.type, arrows: 'from', hidden: false}])
+      // Check if edge exists in opposite direction
+      var edges = $scope.edges.get({
+        filter: function (edge) {
+          return (edge.label == record.type && edge.from == record.to
+                  && edge.to == record.from)
+        }
+      })
+      if (edges.length == 0) {
+        // If it doesn't exist the other way, add it
+        $scope.edges.add([{id: edgeId, from: record.from, to: record.to,
+                          label: record.type, arrows: 'from', hidden: false}])
+      } else {
+        // If it does exist, make the arrow bidirectional
+        edges.forEach((edge)=> {
+          $scope.edges.update({id: edge.id, arrows:'to, from'})
+        })
+      }
 
       // Loop through relationships and push to filterRelationships
       var typeNew = true
@@ -93,6 +165,9 @@ angular.module('rtApp')
   $scope.options = { physics : { enabled: true }}
   $scope.network = new vis.Network(graph, $scope.data, $scope.options)
 
+  // Page setup
+  setTimeout($scope.jiggleToggle,1000)
+
 
   /***************************************************************************
    * Helper Functions
@@ -103,14 +178,6 @@ angular.module('rtApp')
    */
   $scope.removeNode = function() {
     $scope.nodes.remove({id: document.getElementById('nodeId').value})
-  }
-
-  /* Function for Physics Toggle Button */
-
-  $scope.jiggleToggle = function() {
-    $scope.options.physics.enabled = !$scope.options.physics.enabled
-    console.log($scope.options)
-    $scope.network.setOptions($scope.options)
   }
   /*
    * This version was here too. Kept it for now in case I kept the wrong one
@@ -130,12 +197,12 @@ angular.module('rtApp')
    */
   $scope.hideNode = function() {
     var label = document.getElementById('nodeLabel').value
-    var edges = $scope.nodes.get({
+    var nodes = $scope.nodes.get({
       filter: function (node) {
         return (node.label == label)
       }
     })
-    edges.forEach(function(node){
+    nodes.forEach(function(node){
       var id = node.id
       if (node.hidden) {
         $scope.nodes.update({id: id, hidden: false})
@@ -203,6 +270,18 @@ angular.module('rtApp')
       }
     })
     return edges[0]
+  }
+
+  /*
+   * Function to get number of edges with a given label
+   */
+  $scope.getNumberOfEdgesWithLabel = function(label) {
+    var edges = $scope.edges.get({
+      filter: function (edge) {
+        return (edge.label == label)
+      }
+    })
+    return edges.length
   }
 
 }])
