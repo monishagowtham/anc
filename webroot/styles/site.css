@@ -17,9 +17,14 @@
   width: 95vw;
   position: relative;
 }
-
+.sub-filter{
+  min-width: 100%;
+  min-height: 100%;
+  padding-left: 5%;
+  display: block;
+}
 .filter-form-item {
-  padding-top: 3px;
+  padding-top: 1px;
 }
 
 #graph {

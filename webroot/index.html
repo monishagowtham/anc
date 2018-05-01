@@ -29,20 +29,62 @@
     </nav>
   </header>
       <div class="main-content">
-        <div id="graph-controller-scope" ng-controller="GraphController as graph">
-          <div id="graph"></div>
-          <div id="accordion">
-            <div class="filter-form-item"><button ng-click="jiggleToggle()">Toggle Physics</button><input id="physicsToggle" /></div>
-            <div id="graph-filter">
-              <h6>Filters:</h6>
-              <div class="filter-form-item"><button ng-click="hideEdge()">Hide/Show Relationship</button> label: <input id="edgeLabel" /></div>
-              <div class="sub-filter" id="edge-filter">
-                <h8>Relationships</h8>
-                <div ng-repeat="relationship in filterRelationships">
-                  <div class="filter-form-item"><input id="checkbox{{relationship}}" type="checkbox" name='NodeCheckbox' ng-checked="!getFirstEdgeWithLabel(relationship).hidden" value='{relationship}}' ng-click='hideType(relationship)'>{{relationship}}</input></div><br />
+        <div id="graph-controller-scope" ng-controller="GraphController as graph"><div id="graph"></div>
+
+          <div id="graph-filter">
+
+            <div id="accordion">
+              <div class="card">
+                <div class="card-header" id="headingOne">
+                  <h5 class="mb-0">
+                    <button class="btn btn-link" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                      Graph Physics
+                    </button>
+                  </h5>
+                </div>
+
+                <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+                  <div class="card-body">
+                    <div class="filter-form-item"><button ng-click="jiggleToggle()">Toggle Physics</button></div>
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-header" id="headingTwo">
+                  <h5 class="mb-0">
+                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                      Create Node
+                    </button>
+                  </h5>
+                </div>
+                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+                  <div class="card-body">
+                    Create Node Body Location
+                  </div>
+                </div>
+              </div>
+              <div class="card">
+                <div class="card-header" id="headingThree">
+                  <h5 class="mb-0">
+                    <button class="btn btn-link collapsed" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                      Hide/Show Relationships
+                    </button>
+                  </h5>
+                </div>
+                <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
+                  <div class="card-body">
+                    FILTER: <input id="edgeLabel" /></div>
+                    <div class="sub-filter" id="edge-filter">
+                      <div ng-repeat="relationship in filterRelationships">
+                        <div class="filter-form-item"><input id="checkbox{{relationship}}" type="checkbox" name='NodeCheckbox' ng-checked="!getFirstEdgeWithLabel(relationship).hidden" value='{relationship}' ng-click='hideType(relationship)'>&nbsp{{relationship}}</input></div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
+
+
           </div>
         </div>
       </div>
