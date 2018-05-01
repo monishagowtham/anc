@@ -307,6 +307,13 @@ angular.module('rtApp')
   }
 
   /*
+   * Function to get node by id
+   */
+  $scope.getNodeById = function(id) {
+    return $scope.nodes.get(id)
+  }
+
+  /*
    * Function to get first edge with a given label
    */
   $scope.getFirstEdgeWithLabel = function(label) {
