@@ -30,6 +30,29 @@ angular.module('rtApp')
   })
   .then(function mySuccess(response) {
     response.data.neoRecords.forEach(function(record){
+<<<<<<< Updated upstream
+=======
+      var color = {
+        background: '',
+        border:'',
+        highlight: ''
+      }
+      switch(record.type){
+        case "Person":
+          color.background = "rgba(250,175,175,1)"
+          color.highlight = "rgba(225,150,150,1)"
+          break;
+        case "Tribe":
+          color.background = "rgba(225,225,125,1)"
+          color.highlight = "rgba(200,200,100,1)"
+          break;
+        default:
+          color.background = "rgba(125,125,250,1)"
+          color.highlight = "rgba(100,100,225,1)"
+          break;
+      }
+      color.border = color.background
+>>>>>>> Stashed changes
         $scope.nodes.add([{id: record.properties.id.low,
           label: record.properties.name, hidden: false}])
     })
