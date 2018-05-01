@@ -6,6 +6,11 @@
 angular.module('rtApp')
         .controller('GraphController',['$scope','$http', ($scope,$http) => {
 
+  // TEMPORARY settings UNTIL MULTIUSER SETTINGS ARE ADDED
+  $scope.graphId = 0;
+  $scope.homeId = 0;
+  $scope.homeType = "Person";
+
   /*
    * Helper function for creating nodes. Converts rgba values to string.
    */
@@ -51,6 +56,7 @@ angular.module('rtApp')
   $scope.nodes = new vis.DataSet([])
   $scope.edges = new vis.DataSet([])
   $scope.filterRelationships = []
+  $scope.allNodes = []
 
   /*
    * Used to ensure all edge ids are unique since they are required for vis.js
@@ -64,7 +70,7 @@ angular.module('rtApp')
    */
   $http({
       method : "GET",
-      url : "http://localhost:8005/api/nodes"
+      url : `http://localhost:8005/api/graphNodes?graphId=${$scope.graphId}`
   })
   .then(function mySuccess(response) {
     response.data.neoRecords.forEach(function(record){
@@ -91,7 +97,7 @@ angular.module('rtApp')
           color.b = 250
           break;
       }
-      var colorObj = {
+      var colors = {
         background: rgba(color.r,color.g,color.b,color.a),
         border: rgba(color.r * .75,color.g * .75,color.b * .75,color.a),
         highlight: {
@@ -99,8 +105,10 @@ angular.module('rtApp')
           border: rgba(color.r * .5625,color.g * .5625,color.b * .5625,color.a)
         }
       }
-      $scope.nodes.add([{id: record.properties.id.low,
-        label: record.properties.name, color: colorObj, hidden: false}])
+      $scope.nodes.add([{id: record.properties.visId,
+        label: record.properties.name, color: colors, hidden: true}])
+
+      $scope.allNodes.push({name: record.properties.name, id: record.properties.visId})
     })
   },
   function myError(response) {
@@ -113,7 +121,7 @@ angular.module('rtApp')
    */
   $http({
           method : "GET",
-          url : "http://localhost:8005/api/relationships"
+          url : `http://localhost:8005/api/graphAroundNode?id=${$scope.homeId}&type=${$scope.homeType}&graph=${$scope.graphId}`
   })
   .then(function mySuccess(response) {
     response.data.neoRecords.forEach(function(record){
@@ -125,25 +133,29 @@ angular.module('rtApp')
         }
       })
       if (edges.length == 0) {
+
         // If it doesn't exist the other way, add it
         $scope.edges.add([{id: edgeId, from: record.from, to: record.to,
                           label: record.type, arrows: 'from', hidden: false}])
+        $scope.nodes.update({id: record.from, hidden: false})
+        $scope.nodes.update({id: record.to, hidden: false})
+
+        // Loop through relationships and push to filterRelationships
+        var typeNew = true
+        $scope.filterRelationships.forEach((filterRel) => {
+          if (filterRel === record.type) {
+            typeNew = false
+          }
+        })
+        if (typeNew) {
+          $scope.filterRelationships.push(record.type)
+        }
+
       } else {
         // If it does exist, make the arrow bidirectional
         edges.forEach((edge)=> {
           $scope.edges.update({id: edge.id, arrows:'to, from'})
         })
-      }
-
-      // Loop through relationships and push to filterRelationships
-      var typeNew = true
-      $scope.filterRelationships.forEach((filterRel) => {
-        if (filterRel === record.type) {
-          typeNew = false
-        }
-      })
-      if (typeNew) {
-        $scope.filterRelationships.push(record.type)
       }
 
       // increment edgeId so all edge ids are unique
