@@ -19,20 +19,19 @@
   <body>
     <div class="controller-div" ng-controller="NavBarController as components">
     <header>
-    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+    <nav class="navbar navbar-dark fixed-top bg-dark">
       <a class="navbar-brand" href="/#">Ancestry Graph</a>
         <form class="form-inline mt-2 mt-md-0 search-bar">
           <input class="form-control mr-sm-2" type="email" placeholder="Email" aria-label="Email">
           <input class="form-control mr-sm-2" type="password" placeholder="Password" aria-label="Password">
           <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Login</button>
         </form>
-      </div>
     </nav>
   </header>
       <div class="main-content">
         <div id="graph-controller-scope" ng-controller="GraphController as graph">
           <div id="graph"></div>
-          <div class="filter-form-item"><button ng-click="jiggleToggle()">Physics Disable</button><input id="physicsToggle" /></div>
+          <div class="filter-form-item"><button ng-click="jiggleToggle()">Toggle Physics</button><input id="physicsToggle" /></div>
           <div id="graph-filter">
             <h6>Filters:</h6>
             <div class="filter-form-item"><button ng-click="hideEdge()">Hide/Show Relationship</button> label: <input id="edgeLabel" /></div>
@@ -45,7 +44,6 @@
           </div>
         </div>
       </div>
-      <div class="footer" ng-bind-html="footer"></div>
     </div>
   </body>
 </html>
