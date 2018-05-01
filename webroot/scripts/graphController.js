@@ -78,7 +78,7 @@ angular.module('rtApp')
     nodes: $scope.nodes,
     edges: $scope.edges
   }
-  $scope.options = {}
+  $scope.options = { physics : { enabled: true }}
   $scope.network = new vis.Network(graph, $scope.data, $scope.options)
 
 
@@ -93,14 +93,13 @@ angular.module('rtApp')
     $scope.nodes.remove({id: document.getElementById('nodeId').value})
   }
 
-  /* TURN OFF GRAPH PHYSICS BUTTON FUNCTION */
+  /* Function for Physics Toggle Button */
 
   $scope.jiggleToggle = function() {
     $scope.options.physics.enabled = !$scope.options.physics.enabled
     console.log($scope.options)
     $scope.network.setOptions($scope.options)
-
-    }
+  }
   /*
    * This version was here too. Kept it for now in case I kept the wrong one
    * since it still needs to be used later
