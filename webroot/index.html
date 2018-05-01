@@ -10,10 +10,10 @@
     <script src="/node_modules/jquery/dist/jquery.min.js"></script>
     <script src="/node_modules/angular/angular.js"></script>
     <script src="/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
-    <script src="/node_modules/vis/dist/vis.min.js"></script>
 
     <script src="/scripts/app.js"></script>
     <script src="/scripts/navBarController.js"></script>
+    <script src="/node_modules/vis/dist/vis.min.js"></script>
     <script src='/scripts/graphController.js'></script>
   </head>
   <body>
@@ -21,11 +21,6 @@
     <header>
     <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
       <a class="navbar-brand" href="/#">Ancestry Graph</a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarCollapse">
-        <div class="main-nav" ng-bind-html="mainNav"></div>
         <form class="form-inline mt-2 mt-md-0 search-bar">
           <input class="form-control mr-sm-2" type="email" placeholder="Email" aria-label="Email">
           <input class="form-control mr-sm-2" type="password" placeholder="Password" aria-label="Password">
@@ -39,18 +34,11 @@
           <div id="graph"></div>
           <div id="graph-filter">
             <h6>Filters:</h6>
-            <div class="filter-form-item"><button ng-click="hideNode()">Hide/Show Person</button> name: <input id="nodeLabel" /></div>
             <div class="filter-form-item"><button ng-click="hideEdge()">Hide/Show Relationship</button> label: <input id="edgeLabel" /></div>
-            <div class="sub-filter" id="node-filter">
-              <h8>People</h8>
-              <div ng-repeat="name in tempNames">
-                <div class="filter-form-item"><input id="checkbox{{name}}" type="checkbox" name='NodeCheckbox' ng-checked="!getFirstNodeWithLabel(name).hidden" value='{{name}}' ng-click='hideNodeCheckbox(name)'>{{name}}</input></div><br />
-              </div>
-            </div>
             <div class="sub-filter" id="edge-filter">
               <h8>Relationships</h8>
-              <div ng-repeat="relationship in tempRelationships">
-                <div class="filter-form-item"><input id="checkbox{{relationship}}" type="checkbox" name='NodeCheckbox' ng-checked="!getFirstEdgeWithLabel(relationship).hidden" value='{relationship}}' ng-click='hideEdgeCheckbox(relationship)'>{{relationship}}</input></div><br />
+              <div ng-repeat="relationship in filterRelationships">
+                <div class="filter-form-item"><input id="checkbox{{relationship}}" type="checkbox" name='NodeCheckbox' ng-checked="!getFirstEdgeWithLabel(relationship).hidden" value='{relationship}}' ng-click='hideType(relationship)'>{{relationship}}</input></div><br />
               </div>
             </div>
           </div>
