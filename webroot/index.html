@@ -32,6 +32,7 @@
       <div class="main-content">
         <div id="graph-controller-scope" ng-controller="GraphController as graph">
           <div id="graph"></div>
+          <div class="filter-form-item"><button ng-click="jiggleToggle()">Physics Disable</button><input id="physicsToggle" /></div>
           <div id="graph-filter">
             <h6>Filters:</h6>
             <div class="filter-form-item"><button ng-click="hideEdge()">Hide/Show Relationship</button> label: <input id="edgeLabel" /></div>

@@ -93,6 +93,14 @@ angular.module('rtApp')
     $scope.nodes.remove({id: document.getElementById('nodeId').value})
   }
 
+  /* TURN OFF GRAPH PHYSICS BUTTON FUNCTION */
+
+  $scope.jiggleToggle = function() {
+    $scope.options.physics.enabled = !$scope.options.physics.enabled
+    console.log($scope.options)
+    $scope.network.setOptions($scope.options)
+
+    }
   /*
    * This version was here too. Kept it for now in case I kept the wrong one
    * since it still needs to be used later
