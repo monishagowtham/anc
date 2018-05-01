@@ -49,6 +49,35 @@ angular.module('rtApp')
     $scope.network.setOptions($scope.options)
   }
 
+  /* Function to get node info*/
+  var setNodeInfo = function (id) {
+    $http({
+            method : "GET",
+            url : `http://localhost:8005/api/relationshipsByNode?id=${id}&graph=${$scope.graphId}`
+    })
+    .then(function mySuccess(response) {
+      var html = ""
+      console.log(response.data)
+      html += `<h6>${response.data.name.toString()}</h6><br/>`
+      response.data.from.forEach(function(record){
+        html += `<p>has ${record.type} ${record.to}</p>`
+      })
+      if (response.data.to.length > 0 && response.data.from.length > 0) {
+        html += '<br />'
+      }
+      response.data.to.forEach(function(record){
+        html += `<p>${record.type} of ${record.from}</p>`
+      })
+      var output = document.createElement('div')
+      output.innerhtml = html.trim()
+      output.classList.add('node-info-box')
+      $scope.nodes.update({id: id, title: html})
+    },
+    function myError(response) {
+        console.log("Failed to retrieve Node info from database")
+    });
+  }
+
   /*
    * Declare empty arrays to fill with info from database
    */
@@ -65,15 +94,15 @@ angular.module('rtApp')
   var edgeId = 0
 
   /*
-   * Get all nodes from the Express API and add them to $scope.nodes to be used
-   * in the graph
+   * Get all nodes for this graph from the Express API and add them to
+   * $scope.nodes to be used in the graph
    */
   $http({
       method : "GET",
       url : `http://localhost:8005/api/graphNodes?graphId=${$scope.graphId}`
   })
   .then(function mySuccess(response) {
-    response.data.neoRecords.forEach(function(record){
+    response.data.forEach(function(record){
       var color = {
         r: 0,
         g: 0,
@@ -106,7 +135,7 @@ angular.module('rtApp')
         }
       }
       $scope.nodes.add([{id: record.properties.visId,
-        label: record.properties.name, color: colors, hidden: true}])
+        label: record.properties.name, color: colors, title: "Error loading info", hidden: true}])
 
       $scope.allNodes.push({name: record.properties.name, id: record.properties.visId})
     })
@@ -116,15 +145,15 @@ angular.module('rtApp')
   });
 
   /*
-   * Get all relationships from the Express API and add them to
+   * Get all relationships for this graph from the Express API and add them to
    * $scope.relationships to be used in graph
    */
   $http({
           method : "GET",
-          url : `http://localhost:8005/api/graphAroundNode?id=${$scope.homeId}&type=${$scope.homeType}&graph=${$scope.graphId}`
+          url : `http://localhost:8005/api/graphAroundNode?id=${$scope.homeId}&graph=${$scope.graphId}`
   })
   .then(function mySuccess(response) {
-    response.data.neoRecords.forEach(function(record){
+    response.data.forEach(function(record){
       // Check if edge exists in opposite direction
       var edges = $scope.edges.get({
         filter: function (edge) {
@@ -137,6 +166,8 @@ angular.module('rtApp')
         // If it doesn't exist the other way, add it
         $scope.edges.add([{id: edgeId, from: record.from, to: record.to,
                           label: record.type, arrows: 'from', hidden: false}])
+
+        // Make node visible since it will appear on the graph
         $scope.nodes.update({id: record.from, hidden: false})
         $scope.nodes.update({id: record.to, hidden: false})
 
@@ -179,7 +210,10 @@ angular.module('rtApp')
 
   // Page setup
   setTimeout($scope.jiggleToggle,1000)
-
+  setTimeout( () => {
+    $scope.allNodes.forEach( (node) => {
+      setNodeInfo(node.id)
+    })}, 1000)
 
   /***************************************************************************
    * Helper Functions
