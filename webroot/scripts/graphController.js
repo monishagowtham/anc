@@ -41,7 +41,6 @@ angular.module('rtApp')
   /* Function for Physics Toggle Button */
   $scope.jiggleToggle = function() {
     $scope.options.physics.enabled = !$scope.options.physics.enabled
-    console.log($scope.options)
     $scope.network.setOptions($scope.options)
   }
 
@@ -165,7 +164,10 @@ angular.module('rtApp')
   }
   $scope.options = { physics : { enabled: true }}
   $scope.network = new vis.Network(graph, $scope.data, $scope.options)
-  setTimeout($scope.jiggleToggle,3000)
+
+  // Page setup
+  setTimeout($scope.jiggleToggle,1000)
+
 
   /***************************************************************************
    * Helper Functions
@@ -268,6 +270,18 @@ angular.module('rtApp')
       }
     })
     return edges[0]
+  }
+
+  /*
+   * Function to get number of edges with a given label
+   */
+  $scope.getNumberOfEdgesWithLabel = function(label) {
+    var edges = $scope.edges.get({
+      filter: function (edge) {
+        return (edge.label == label)
+      }
+    })
+    return edges.length
   }
 
 }])

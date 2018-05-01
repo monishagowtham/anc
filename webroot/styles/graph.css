@@ -1,7 +1,7 @@
 #graph {
+  z-index: 1;
   position: relative;
-  width: 60vw;
-  float: left;
+  width: 100vw;
   height: 100vh;
   display: border-box;
   border: 1px solid lightgray;
@@ -10,8 +10,10 @@
   width: 20px;
 }
 #accordion {
-  padding-top: 75px;
+  z-index: 50;
+  position: absolute;
+  top: 50px;
+  right: 0;
   width: 30vw;
-  height: 100%;
   float: right;
 }
