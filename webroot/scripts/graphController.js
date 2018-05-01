@@ -3,95 +3,51 @@
  * Written by Austin Barrett
  */
 
-angular.module('spaghettiApp').controller('GraphController', ['$scope','$http', function ($scope,$http) {
+angular.module('rtApp').controller('GraphController', ['$scope','$http', function ($scope,$http) {
 
-    $scope.tempRelationships = []
 
-  $http({
-        method : "GET",
-        url : "http://localhost:8005/api/relationships"
-    }).then(function mySuccess(response) {
-        console.log(response.data)
-        response.data.neoRecords.map((neoRecord) => {
-          if (!($scope.tempRelationships.includes(neoRecord.type.trim().toLowerCase()))) {
-            $scope.tempRelationships.push(neoRecord.type.trim().toLowerCase())
-          }
-        })
-        console.log($scope.tempRelationships)
-    }, function myError(response) {
-      console.log("Kyle, I can't believe you've done this.")
-    })
   $scope.nodes = new vis.DataSet([])
   $scope.edges = new vis.DataSet([])
+  $scope.filterRelationships = []
   var edgeid = 0
 
   $http({
-        method : "GET",
-        url : "http://localhost:8005/api/everything"
+      method : "GET",
+      url : "http://localhost:8005/api/nodes"
+  })
+  .then(function mySuccess(response) {
+    response.data.neoRecords.forEach(function(record){
+        $scope.nodes.add([{id: record.properties.id.low, label: record.properties.name, hidden: false}])
     })
-    .then(function mySuccess(response) {
-        console.log(response.data)
-    },
-    function myError(response) {
-        console.log("I can't believe you've done this.")
-    })
-
-  $http({
-          method : "GET",
-          url : "http://localhost:8005/api/nodes"
-      })
-      .then(function mySuccess(response) {
-        response.data.neoRecords.forEach(function(record){
-            $scope.nodes.add([{id: record.properties.id.low, label: record.properties.name, hidden: false}])
-        })
-      },
-      function myError(response) {
-          console.log("I can't believe you've done this.")
-      });
+  },
+  function myError(response) {
+      console.log("I can't believe you've done this.")
+  });
 
   $http({
           method : "GET",
           url : "http://localhost:8005/api/relationships"
-        })
-        .then(function mySuccess(response) {
-          response.data.neoRecords.forEach(function(record){
-            $scope.edges.add([{id: edgeid, from: record.from, to: record.to, label: record.type, arrows: 'from', hidden: false}])
-            edgeid ++ // need to send data to relationshp list
-          });
-        },
-        function myError(response) {
-            console.log("I can't believe you've done this.")
-        });
+  })
+  .then(function mySuccess(response) {
+    response.data.neoRecords.forEach(function(record){
+      $scope.edges.add([{id: edgeid, from: record.from, to: record.to, label: record.type, arrows: 'from', hidden: false}])
+      var typeNew = true
+      $scope.filterRelationships.forEach((filterRel) => {
+        if (filterRel === record.type) {
+          typeNew = false
+        }
+      })
+      if (typeNew) {
+        $scope.filterRelationships.push(record.type)
+      }
+      edgeid ++ // need to send data to relationshp list
+    });
+  },
+  function myError(response) {
+      console.log("I can't believe you've done this.")
+  });
 
-        console.log($scope.rawNodes)
-
- // I had trouble getting ng-repeat to work properly with vis.DataSet, so
- // I added temporary lists of all values
-
-
-  $scope.tempNames = [
-    'Alice',
-    'Bob',
-    'Charlie',
-    'David',
-    'Eve'
-  ]
-
-
-
-  // $scope.tempRelationships = [
-  //   'mother',
-  //   'son',
-  //   'brother',
-  //   'beneficiary',
-  //   'business partner',
-  //   'friend',
-  //   'acquaintance'
-  // ]
-
-
-
-
+  console.log($scope.rawNodes)
 
   var graph = document.getElementById('graph')
   $scope.data = {
