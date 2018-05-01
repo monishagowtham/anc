@@ -5,6 +5,52 @@ const neo4j = require('./neo4j')
 
 const PORT = process.env.PORT || 8005
 
+/****************************************************************************
+ **** HELPER FUNCTIONS ******************************************************
+ ****************************************************************************/
+
+/*
+ * Forces type to match format used in database
+ */
+function safeType(type) {
+  // Make sure type is even a string. If not, return "Person".
+  if (type == undefined || !(typeof type === "string" || type instanceof String)) {
+    return "Person"
+  }
+
+  // Remove non alphabetical letters and force lowercase
+  type = type.toLowerCase().replace(/[^a-z]/gi, '')
+
+  // Capitalize string
+  type = type.charAt(0).toUpperCase() + type.slice(1)
+
+  // Shorten string if it's long, make it Person if it's empty
+  if (type.length > 10) {
+    type = type.slice(0,10)
+  } else if (type.length == 0) {
+    type = "Person"
+  }
+  return type
+}
+
+/*
+ * Forces id to be an integer
+ */
+function safeId(id) {
+  // If it's not a number, set id to 0
+  if (id = undefined || isNaN(id)) {
+    id = 0
+  } else if (!Number.isInteger(id)) {
+    // if it's not an integer, force it to be one
+    id = Math.round(id)
+  }
+  return id
+}
+
+/****************************************************************************
+**** API CALLS **************************************************************
+****************************************************************************/
+
 neo4j.createConnection('neo4j', '12345', function(session) {
   app.use(bodyParser.urlencoded({ extended: false }))
   app.use(bodyParser.json())
@@ -14,37 +60,33 @@ neo4j.createConnection('neo4j', '12345', function(session) {
               "Origin, X-Requested-With, Content-Type, Accept");
    next();
  })
- app.get('/api/everything', function(req, res){
-   var records = []
-   session.run('MATCH (n1)-[r]->(n2) RETURN r, n1, n2 LIMIT 1000')
-   .subscribe({
-   onNext: function (record) {
-     var rec = {
-       relationship: {
-         type: record._fields[0].type,
-         properties: record._fields[0].properties
-       },
-       from: {
-         type: record._fields[1].labels[0],
-         properties: record._fields[1].properties
-       },
-       to: {
-         type: record._fields[2].labels[0],
-         properties: record._fields[2].properties
-       }
-     }
-     records.push(rec)
-   },
-   onCompleted: function () {
-     //session.close()
-     console.log('Record is: ', records)
-     res.send(JSON.stringify({ neoRecords: records}))
-   },
-   onError: function (error) {
-     console.log(error)
-   }
- })
- })
+
+  app.get('/api/graphNodes', function (req, res) {
+    var graphId = safeId(req.query.graphId)
+    var records = []
+    session.run(`MATCH (g:Graph {graphId: ${graphId}})-[:contains]->(n) RETURN distinct n LIMIT 10000`)
+    .subscribe({
+      onNext: function (record) {
+        var rec = {
+          type: record._fields[0].labels[0],
+          properties: record._fields[0].properties
+        }
+        if (rec.properties.visId != null) {
+          rec.properties.visId = rec.properties.visId.low
+          records.push(rec)
+        }
+      },
+      onCompleted: function () {
+        //session.close()
+        //console.log('Record is: ', records)
+        res.send(JSON.stringify({ neoRecords: records}))
+      },
+      onError: function (error) {
+        console.log(error)
+      }
+    })
+  })
+
   app.get('/api/nodes', function (req, res) {
     var records = []
     session.run('MATCH (n1) RETURN n1 LIMIT 10000')
@@ -54,11 +96,14 @@ neo4j.createConnection('neo4j', '12345', function(session) {
           type: record._fields[0].labels[0],
           properties: record._fields[0].properties
         }
-        records.push(rec)
+        if (rec.properties.visId != null) {
+          rec.properties.visId = rec.properties.visId.low
+          records.push(rec)
+        }
       },
       onCompleted: function () {
         //session.close()
-        console.log('Record is: ', records)
+        //console.log('Record is: ', records)
         res.send(JSON.stringify({ neoRecords: records}))
       },
       onError: function (error) {
@@ -75,14 +120,40 @@ neo4j.createConnection('neo4j', '12345', function(session) {
         var rec = {
           type: record._fields[0].type,
           properties: record._fields[0].properties,
-          to: record._fields[1].properties.id.low,
-          from: record._fields[2].properties.id.low
+          to: record._fields[1].properties.visId.low,
+          from: record._fields[2].properties.visId.low
         }
         records.push(rec)
       },
       onCompleted: function () {
         //session.close()
-        console.log('Record is: ', records)
+        //console.log('Record is: ', records)
+        res.send(JSON.stringify({ neoRecords: records}))
+      },
+      onError: function (error) {
+        console.log(error)
+      }
+    })
+  })
+
+  app.get('/api/graphAroundNode', function (req,res) {
+    var type = safeType(req.query.type)
+    var id = safeId(req.query.id)
+    var graphId = safeId(req.query.graphId)
+    var records = []
+    session.run(`MATCH (a:${type} {visId: ${id}})<-[:contains]-(g:Graph {graphId: ${graphId}})-[:contains]->(n1)-[r]->(n2) WHERE (n1)-[*0..3]-(a) RETURN distinct r, n1, n2`)
+    .subscribe({
+      onNext: function (record) {
+        var rec = {
+          type: record._fields[0].type,
+          properties: record._fields[0].properties,
+          to: record._fields[1].properties.visId.low,
+          from: record._fields[2].properties.visId.low
+        }
+        records.push(rec)
+      },
+      onCompleted: function () {
+        //session.close()
         res.send(JSON.stringify({ neoRecords: records}))
       },
       onError: function (error) {
