@@ -141,7 +141,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
 // Deprecated
   app.get('/api/nodes', function (req, res) {
     var records = []
-    session.run('MATCH (n1) RETURN n1 WHERE NOTE n:Graph LIMIT 10000')
+    session.run('MATCH (n1) WHERE NOT n1:Graph RETURN n1 LIMIT 10000')
     .subscribe({
       onNext: function (record) {
         var rec = {
@@ -167,7 +167,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
 // Deprecated
   app.get('/api/relationships', function (req, res) {
     var records = []
-    session.run('MATCH (n1)-[r]->(n2) WHERE NOT n1:Graph AND NOTE n2:Graph RETURN r, n1, n2 LIMIT 10000')
+    session.run('MATCH (n1)-[r]->(n2) WHERE NOT n1:Graph AND NOT n2:Graph RETURN r, n1, n2 LIMIT 10000')
     .subscribe({
       onNext: function (record) {
         var rec = {
