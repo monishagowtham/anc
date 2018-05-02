@@ -83,7 +83,7 @@ angular.module('rtApp')
     },
     function myError(response) {
         console.log("Failed to retrieve Node info from database")
-    });
+    })
   }
 
 
@@ -98,7 +98,7 @@ angular.module('rtApp')
       })
       .then(function mySuccess(response) {
         $scope.nodes.clear()
-        allNodes = []
+        $scope.allNodes = []
         response.data.forEach(function(record){
           var color = {
             r: 0,
@@ -145,7 +145,7 @@ angular.module('rtApp')
       },
       function myError(response) {
           console.log("Failed to retrieve nodes from database")
-      });
+      })
    }
 
    /*
@@ -229,7 +229,7 @@ angular.module('rtApp')
        },
        function myError(response) {
            console.log("Failed to retrieve relationships from database")
-       });
+       })
    }
 
    function getNumberRelationships(node) {
@@ -242,7 +242,7 @@ angular.module('rtApp')
      },
      function myError(response) {
          console.log("Failed to retrieve number of relationships to node")
-     });
+     })
    }
 
    /*
@@ -395,7 +395,7 @@ angular.module('rtApp')
    }
 
    /*
-    * Switch graphs
+    * Switch graphs (setDefaultHomeId not yet implemented)
     */
     $scope.switchGraphs = function(graphId) {
       $scope.graphId = graphId
@@ -410,9 +410,17 @@ angular.module('rtApp')
      $scope.createNode = function() {
       var name = document.getElementById('pwd').value
       var type = document.getElementById('nodeType').value
-      var query = "CREATE (n:" + type + "{ name: {" + name + "}})\nRETURN n"
-      console.log(query)
-
+      $http({
+              method : "POST",
+              url : `http://localhost:8005/api/addNode?name=${name}&graph=${$scope.graphId}&type=${type}`
+      })
+      .then(function mySuccess(response) {
+          console.log(response.data.id)
+          generateNodesList()
+      },
+      function myError(response) {
+          console.log(response)
+      })
     }
 
 
