@@ -296,4 +296,9 @@ angular.module('rtApp')
     return edges.length
   }
 
+  $scope.createNodeQueryParse = function(session, driver) {
+    var query = "CREATE (n:" + getType() + "{ name: {"+ getName() +"}})\nRETURN n"
+
+  }
+
 }])
