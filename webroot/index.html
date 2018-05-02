@@ -45,82 +45,104 @@
                 </div>
                 <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
                   <div class="card-body">
-                    <input id="filter-search" class="form-control" ng-model="search" placeholder="Filter"/></div>
                     <div class="sub-filter" id="edge-filter">
+                      <input id="filter-search" class="form-control" ng-model="relSearch" placeholder="Filter"/><br />
                       <div class="btn-group-toggle" data-toggle="buttons">
                         <div class="pre-scrollable">
-                            <a data-ng-repeat="relationship in filterRelationships | filter: search" on-finish-render="finished" href="javascript://void()" ng-click='hideType(relationship)' class="list-group-item project" data-toggle="tooltip" data-original-title="{{project.lifecycle}}">
+                            <a data-ng-repeat="relationship in filterRelationships | filter: relSearch" on-finish-render="finished" href="javascript://void()" ng-click='hideType(relationship)' class="list-group-item" data-toggle="tooltip">
                                 <h4 ng-if="!getFirstEdgeWithLabel(relationship).hidden" class="relationship-name">{{relationship}}<span class="badge badge-dark relationship-count float-right">{{getNumberOfEdgesWithLabel(relationship)}}</span></h4>
                                 <h4 ng-if="getFirstEdgeWithLabel(relationship).hidden" class="relationship-name negated">{{relationship}}<span class="badge badge-secondary negated relationship-count float-right">{{getNumberOfEdgesWithLabel(relationship)}}</span></h4>
                                 <input id="checkbox{{relationship}}" type="checkbox" style="display:none" ng-checked="getFirstEdgeWithLabel(relationship).hidden">
                             </a>
                             <br />
                         </div>
-                        <!--<label ng-repeat="relationship in filterRelationships | filter: search" class="btn btn-secondary filter-button active" ng-click='hideType(relationship)'>
-                          <input id="checkbox{{relationship}}" type="checkbox" name='NodeCheckbox' ng-checked="!getFirstEdgeWithLabel(relationship).hidden" value='{relationship}'> {{relationship}}
-                        </label>-->
                       </div>
                     </div>
                   </div>
                 </div>
+              </div>
 
               <div class="card">
                 <div class="card-header" id="headingTwo">
                   <h5 class="mb-0">
                     <button class="btn btn-link collapse-title collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                      Create Node
+                      Jump To
                     </button>
                   </h5>
                 </div>
                 <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
                   <div class="card-body">
-
-                    <form class="form-horizontal" action="/action_page.php">
-                      <div class="form-group">
-                        <label class="control-label col-sm-6" for="email">Select Type:</label>
-                        <div class="col-sm-10">
-                          <div class="btn-group">
-                            <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                              Action
-                            </button>
-                            <div class="dropdown-menu">
-                              <a class="dropdown-item" href="#">Action</a>
-                              <a class="dropdown-item" href="#">Another action</a>
-                              <a class="dropdown-item" href="#">Something else here</a>
-                              <div class="dropdown-divider"></div>
-                              <a class="dropdown-item" href="#">Separated link</a>
-                            </div>
-                          </div>
+                    <div class="sub-filter" id="edge-filter">
+                      <input id="node-search" class="form-control" ng-model="nodeSearch" placeholder="Filter"/><br />
+                      <div class="btn-group-toggle" data-toggle="buttons">
+                        <div class="pre-scrollable">
+                            <a data-ng-repeat="node in allNodes | filter: nodeSearch" on-finish-render="finished" href="javascript://void()" ng-click='moveTo(node.id)' class="list-group-item" data-toggle="tooltip">
+                                <h4 ng-if="node.id == homeId" class="relationship-name">{{node.name}}<span class="badge badge-dark relationship-count float-right">{{node.rels}}</span></h4>
+                                <h4 ng-if="node.id != homeId" class="relationship-name unchosen">{{node.name}}<span class="badge badge-secondary relationship-count float-right">{{node.rels}}</span></h4>
+                                <input id="checkbox{{relationship}}" type="checkbox" style="display:none" ng-checked="getFirstEdgeWithLabel(relationship).hidden">
+                            </a>
+                            <br />
                         </div>
                       </div>
-                      <div class="form-group">
-                        <label class="control-label col-sm-6" for="pwd">Name:</label>
-                        <div class="col-sm-10">
-                          <input type="text" class="form-control" id="pwd" placeholder="Enter Node Name">
-                        </div>
-                      </div>
-                      <div class="form-group">
-                        <div class="col-sm-offset-2 col-sm-10">
-                          <button type="submit" class="btn btn-outline-success">Submit</button>
-                        </div>
-                      </div>
-                    </form>
-
-
+                    </div>
                   </div>
                 </div>
               </div>
 
-                <div class="card" id="bottom-card">
+                <div class="card">
                   <div class="card-header" id="headingThree">
                     <h5 class="mb-0">
-                      <button class="btn btn-link collapse-title collapsed" data-toggle="collapse" data-target="#collapseThree" aria-expanded="true" aria-controls="collapseThree">
+                      <button class="btn btn-link collapse-title collapsed" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                        Create Node
+                      </button>
+                    </h5>
+                  </div>
+                  <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
+                    <div class="card-body">
+                      <form class="form-horizontal" action="/action_page.php">
+                        <div class="form-group">
+                          <label class="control-label col-sm-6" for="email">Select Type:</label>
+                          <div class="col-sm-10">
+                            <div class="btn-group">
+                              <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Action
+                              </button>
+                              <div class="dropdown-menu">
+                                <a class="dropdown-item" href="#">Action</a>
+                                <a class="dropdown-item" href="#">Another action</a>
+                                <a class="dropdown-item" href="#">Something else here</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="#">Separated link</a>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label class="control-label col-sm-6" for="pwd">Name:</label>
+                          <div class="col-sm-10">
+                            <input type="text" class="form-control" id="pwd" placeholder="Enter Node Name">
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <div class="col-sm-offset-2 col-sm-10">
+                            <button type="submit" class="btn btn-outline-success">Submit</button>
+                          </div>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card" id="bottom-card">
+                  <div class="card-header" id="headingFour">
+                    <h5 class="mb-0">
+                      <button class="btn btn-link collapse-title collapsed" data-toggle="collapse" data-target="#collapseFour" aria-expanded="true" aria-controls="collapseFour">
                         Graph Options
                       </button>
                     </h5>
                   </div>
 
-                  <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
+                  <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordion">
                     <div class="card-body">
                       <div class="filter-form-item"><button ng-click="jiggleToggle()">Toggle Physics</button></div>
                     </div>

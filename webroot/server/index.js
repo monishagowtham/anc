@@ -38,7 +38,7 @@ function safeType(type) {
  */
 function safeId(id) {
   // If it's not a number, set id to 0
-  if (id = undefined || isNaN(id)) {
+  if (id == undefined || isNaN(id)) {
     id = 0
   } else if (!Number.isInteger(id)) {
     // if it's not an integer, force it to be one
@@ -77,9 +77,80 @@ neo4j.createConnection('neo4j', '12345', function(session) {
         }
       },
       onCompleted: function () {
-        //session.close()
-        //console.log('Record is: ', records)
-        res.send(JSON.stringify({ neoRecords: records}))
+        res.send(JSON.stringify(records))
+      },
+      onError: function (error) {
+        console.log(error)
+      }
+    })
+  })
+
+   app.get('/api/numberRelationships', function (req, res) {
+     var graphId = safeId(req.query.graphId)
+     var id = safeId(req.query.id)
+     var records = {count: 0}
+     session.run(`MATCH ({visId: ${id}})-[r]-(b) WHERE NOT b:Graph RETURN count(r) as count`)
+     .subscribe({
+       onNext: function (record) {
+         records.count = record._fields[0].low
+       },
+       onCompleted: function () {
+         res.send(JSON.stringify(records))
+       },
+       onError: function (error) {
+         console.log(error)
+       }
+     })
+   })
+
+  app.get('/api/relationshipsByNode', function (req, res) {
+    var graphId = safeId(req.query.graphId)
+    var visId = safeId(req.query.id)
+    var fromRecords = []
+    var toRecords = []
+    var name = "<name>"
+    session.run(`MATCH (s {visId: ${visId}}) RETURN s LIMIT 1`)
+    .subscribe({
+      onNext: function (record) {
+        name = record._fields[0].properties.name
+      },
+      onCompleted: function () {
+        session.run(`MATCH (s {visId: ${visId}})-[r]->(n)<-[:contains]-(g:Graph {graphId: ${graphId}}) RETURN distinct r,n LIMIT 10000`)
+        .subscribe({
+          onNext: function (record) {
+            var rec = {
+              prettyName: record._fields[0].properties.prettyName,
+              type: record._fields[0].type,
+              to: record._fields[1].properties.name
+            }
+            fromRecords.push(rec)
+          },
+          onCompleted: function () {
+
+            session.run(`MATCH (s {visId: ${visId}})<-[r]-(n)<-[:contains]-(g:Graph {graphId: ${graphId}}) RETURN distinct r,n LIMIT 10000`)
+            .subscribe({
+              onNext: function (record) {
+                var rec = {
+                  prettyName: record._fields[0].properties.prettyName,
+                  type: record._fields[0].type,
+                  from: record._fields[1].properties.name
+                }
+                if (record._fields[1].labels[0] !== 'Graph') {
+                  toRecords.push(rec)
+                }
+              },
+              onCompleted: function () {
+                res.send(JSON.stringify({name: name, from: fromRecords, to: toRecords}))
+              },
+              onError: function (error) {
+                console.log(error)
+              }
+            })
+          },
+          onError: function (error) {
+            console.log(error)
+          }
+        })
       },
       onError: function (error) {
         console.log(error)
@@ -88,9 +159,10 @@ neo4j.createConnection('neo4j', '12345', function(session) {
     })
   })
 
+// Deprecated
   app.get('/api/nodes', function (req, res) {
     var records = []
-    session.run("MATCH (n1) RETURN n1 LIMIT 10000")
+    session.run('MATCH (n1) WHERE NOT n1:Graph RETURN n1 LIMIT 10000')
     .subscribe({
       onNext: function (record) {
         var rec = {
@@ -105,7 +177,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
       onCompleted: function () {
         //session.close()
         //console.log('Record is: ', records)
-        res.send(JSON.stringify({ neoRecords: records}))
+        res.send(JSON.stringify(records))
       },
       onError: function (error) {
         console.log(error)
@@ -113,9 +185,10 @@ neo4j.createConnection('neo4j', '12345', function(session) {
     })
   })
 
+// Deprecated
   app.get('/api/relationships', function (req, res) {
     var records = []
-    session.run("MATCH (n1)-[r]->(n2) RETURN r, n1, n2 LIMIT 10000")
+    session.run('MATCH (n1)-[r]->(n2) WHERE NOT n1:Graph AND NOT n2:Graph RETURN r, n1, n2 LIMIT 10000')
     .subscribe({
       onNext: function (record) {
         var rec = {
@@ -129,7 +202,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
       onCompleted: function () {
         //session.close()
         //console.log('Record is: ', records)
-        res.send(JSON.stringify({ neoRecords: records}))
+        res.send(JSON.stringify(records))
       },
       onError: function (error) {
         console.log(error)
@@ -139,11 +212,10 @@ neo4j.createConnection('neo4j', '12345', function(session) {
 
   app.get('/api/graphAroundNode', function (req,res) {
     var params = {
-      id: safeId(req.query.id),
-      graph: safeId(req.query.graphId)
+      id: safeId(req.query.id)
     }
     var records = []
-    session.run("MATCH (a:Person {visId: {id} })<-[:contains]-(g:Graph {graphId: {graph} })-[:contains]->(n1)-[r]->(n2) WHERE (n1)-[*0..3]-(a) RETURN distinct r, n1, n2", params)
+    session.run(`MATCH (n1 {visId: {id}})-[r]->(n2) WHERE NOT n2:Graph RETURN r, n1, n2 UNION MATCH (n2 {visId: {id}})<-[r]-(n1) WHERE NOT n1:Graph RETURN r, n1, n2 UNION MATCH (a {visId: {id}})-[]-(n1)-[r]->(n2) WHERE NOT n2:Graph AND NOT n1:Graph RETURN r, n1, n2 UNION MATCH (a {visId: {id}})-[]-(n2)<-[r]-(n1) WHERE NOT n2:Graph AND NOT n1:Graph RETURN r, n1, n2 UNION MATCH (a {visId: {id}})-[]-(b)-[]-(n1)-[r]->(n2) WHERE NOT n2:Graph AND NOT n1:Graph AND NOT b:Graph RETURN r, n1, n2 UNION MATCH (a {visId: {id}})-[]-(b)-[]-(n2)<-[r]-(n1) WHERE NOT n2:Graph AND NOT n1:Graph AND NOT b:Graph RETURN r, n1, n2`, params)
     .subscribe({
       onNext: function (record) {
         var rec = {
@@ -156,8 +228,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
       },
       onCompleted: function () {
         //session.close()
-        res.status(200)
-        res.send(JSON.stringify({ neoRecords: records}))
+        res.send(JSON.stringify(records))
       },
       onError: function (error) {
         console.log(error)
@@ -194,14 +265,14 @@ neo4j.createConnection('neo4j', '12345', function(session) {
           },
           onError: function (error) {
             console.log(error)
-            res.sendStatus(500)
+            res.status(500)
             res.send(JSON.stringify({result: "error", message: "Failed to add node"}))
           }
         })
       },
       onError: function (error) {
         console.log(error)
-        res.sendStatus(500)
+        res.status(500)
         res.send(JSON.stringify({result: "error", message: "Failed to check for available IDs"}))
       }
     })
