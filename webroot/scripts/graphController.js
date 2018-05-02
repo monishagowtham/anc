@@ -7,14 +7,27 @@ angular.module('rtApp')
         .controller('GraphController',['$scope','$http', ($scope,$http) => {
 
   // settings (set these better later)
-  $scope.graphId = 0;
-  $scope.homeId = 0;
+  $scope.graphId = 1
+  $scope.homeId = 0
   $scope.nodeTypes = [
     "Person",
     "Document",
     "Tribe"
   ]
   $scope.inPreview = false
+  var username = 'austin'
+  var password = 'hunter2'
+  $scope.key = ''
+  $http({
+          method : "GET",
+          url : `http://localhost:8005/api/requestApiKey?u=${username}&p=${password}`
+  })
+  .then(function mySuccess(response) {
+    $scope.key = response.data.key
+  },
+  function myError(response) {
+      console.log("Failed to retrieve Node info from database")
+  })
 
   /*
    * Helper function for creating nodes. Converts rgba values to string.
@@ -64,7 +77,7 @@ angular.module('rtApp')
   function setNodeInfo (id) {
     $http({
             method : "GET",
-            url : `http://localhost:8005/api/relationshipsByNode?id=${id}&graph=${$scope.graphId}`
+            url : `http://localhost:8005/api/relationshipsByNode?id=${id}&graphId=${$scope.graphId}&u=${username}`
     })
     .then(function mySuccess(response) {
       var html = ""
@@ -100,7 +113,7 @@ angular.module('rtApp')
    function generateNodesList() {
       $http({
           method : "GET",
-          url : `http://localhost:8005/api/graphNodes?graphId=${$scope.graphId}`
+          url : `http://localhost:8005/api/graphNodes?graphId=${$scope.graphId}&u=${username}`
       })
       .then(function mySuccess(response) {
         $scope.nodes.clear()
@@ -170,7 +183,7 @@ angular.module('rtApp')
    $scope.generateRelationshipList = function() {
      $http({
             method : "GET",
-            url : `http://localhost:8005/api/graphAroundNode?id=${$scope.homeId}&graph=${$scope.graphId}`
+            url : `http://localhost:8005/api/graphAroundNode?id=${$scope.homeId}&graphId=${$scope.graphId}&u=${username}`
        })
        .then(function mySuccess(response) {
          $scope.inPreview = false
@@ -244,7 +257,7 @@ angular.module('rtApp')
    function getNumberRelationships(node) {
      $http({
          method : "GET",
-         url : `http://localhost:8005/api/numberRelationships?graphId=${$scope.graphId}&id=${node.id}`
+         url : `http://localhost:8005/api/numberRelationships?graphId=${$scope.graphId}&id=${node.id}&u=${username}`
      })
      .then(function mySuccess(response) {
        node.rels=response.data.count
@@ -418,10 +431,9 @@ angular.module('rtApp')
      $scope.createNode = function(name,type) {
       $http({
               method : "POST",
-              url : `http://localhost:8005/api/addNode?graph=${$scope.graphId}&name=${name}&type=${type}`
+              url : `http://localhost:8005/api/addNode?graphId=${$scope.graphId}&name=${name}&type=${type}&u=${username}&key=${$scope.key}`
       })
       .then(function mySuccess(response) {
-          console.log(response.data.id)
           generateNodesList()
       },
       function myError(response) {
@@ -440,7 +452,7 @@ angular.module('rtApp')
         });
       $http({
               method : "POST",
-              url : `http://localhost:8005/api/addRelationship?graph=${$scope.graphId}&name=${name}&pretty=${prettyName}&from=${from}&to=${to}`
+              url : `http://localhost:8005/api/addRelationship?graphId=${$scope.graphId}&name=${name}&pretty=${prettyName}&from=${from}&to=${to}&u=${username}&key=${$scope.key}`
       })
       .then(function mySuccess(response) {
           $scope.generateRelationshipList()
@@ -455,7 +467,6 @@ angular.module('rtApp')
      * but it makes sense this way)
      */
     $scope.previewRelationship = function(prettyName,to,from) {
-      console.log(prettyName + ' ' + from + ' ' + to)
       $scope.inPreview = true
       var newLabel = prettyName
       // Check if edge exists in opposite direction
