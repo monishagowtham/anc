@@ -168,7 +168,9 @@ neo4j.createConnection('neo4j', '12345', function(session) {
   })
 
   app.post("/api/addNode", function (req, res) {
-    var name = req.params.name
+    var name = req.params.name // force to conform
+    var type = safeType(req.params.type)
+    var graphId = safeId(graphId)
     var ids = []
     var id = 0
     session.run("MATCH (g:Graph {graphId: {graphId} })-[:contains]-(b) RETURN distinct b.visId",{graphId: graphId})
@@ -178,25 +180,29 @@ neo4j.createConnection('neo4j', '12345', function(session) {
       },
       onCompleted: function () {
         for (i = 0; i < ids.length + 1 && id == 0; i++) {
-          if (!ids.contains(i)) {
+          if (!ids.includes(i)) {
             id = i
           }
         }
-        session.run("MATCH (g:Graph {graphId: {graphId} }) CREATE (g)-[:contains]->(: {type} {id: {id} })",{graphId: graphId, type: type, name: name})
+        session.run(`MATCH (g:Graph {graphId: {graphId} }) CREATE (g)-[:contains]->(a:${type} {visId: {id} })`,{graphId: graphId, name: name, id: id})
         .subscribe({
           onNext: function (record) {
 
           },
           onCompleted: function () {
-            res.send(id)
+            res.send(JSON.stringify({id: id}))
           },
           onError: function (error) {
             console.log(error)
+            res.sendStatus(500)
+            res.send(JSON.stringify({result: "error", message: "Failed to add node"}))
           }
         })
       },
       onError: function (error) {
         console.log(error)
+        res.sendStatus(500)
+        res.send(JSON.stringify({result: "error", message: "Failed to check for available IDs"}))
       }
     })
   })
