@@ -64,7 +64,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
   app.get('/api/graphNodes', function (req, res) {
     var graphId = safeId(req.query.graphId)
     var records = []
-    session.run(`MATCH (g:Graph {graphId: ${graphId}})-[:contains]->(n) RETURN distinct n LIMIT 10000`)
+    session.run("MATCH (g:Graph {graphId: {graphId} })-[:contains]->(n) RETURN distinct n LIMIT 10000",{graphId: graphId})
     .subscribe({
       onNext: function (record) {
         var rec = {
@@ -154,6 +154,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
       },
       onError: function (error) {
         console.log(error)
+        res.send(JSON.stringify({result: "error", message: "Database failed to respond to request"}))
       }
     })
   })
@@ -210,11 +211,11 @@ neo4j.createConnection('neo4j', '12345', function(session) {
   })
 
   app.get('/api/graphAroundNode', function (req,res) {
-    var id = safeId(req.query.id)
-    var graphId = safeId(req.query.graphId)
+    var params = {
+      id: safeId(req.query.id)
+    }
     var records = []
-    //session.run(`MATCH (n1)-[m*0..3]-(a {visId: ${id}})<-[:contains]-(g:Graph {graphId: ${graphId}})-[:contains]->(n1)-[r]->(n2) WHERE ALL(p in m WHERE NOT type(p)="contains") RETURN r, n1, n2 UNION MATCH (n1 {visId: ${id}})-[r]->(n2) WHERE NOT n2:Graph RETURN r, n1, n2 UNION MATCH (n2 {visId: ${id}})<-[r]-(n1) WHERE NOT n1:Graph RETURN r, n1, n2`)
-    session.run(`MATCH (n1 {visId: ${id}})-[r]->(n2) WHERE NOT n2:Graph RETURN r, n1, n2 UNION MATCH (n2 {visId: ${id}})<-[r]-(n1) WHERE NOT n1:Graph RETURN r, n1, n2 UNION MATCH (a {visId: ${id}})-[]-(n1)-[r]->(n2) WHERE NOT n2:Graph AND NOT n1:Graph RETURN r, n1, n2 UNION MATCH (a {visId: ${id}})-[]-(n2)<-[r]-(n1) WHERE NOT n2:Graph AND NOT n1:Graph RETURN r, n1, n2 UNION MATCH (a {visId: ${id}})-[]-(b)-[]-(n1)-[r]->(n2) WHERE NOT n2:Graph AND NOT n1:Graph AND NOT b:Graph RETURN r, n1, n2 UNION MATCH (a {visId: ${id}})-[]-(b)-[]-(n2)<-[r]-(n1) WHERE NOT n2:Graph AND NOT n1:Graph AND NOT b:Graph RETURN r, n1, n2`)
+    session.run(`MATCH (n1 {visId: {id}})-[r]->(n2) WHERE NOT n2:Graph RETURN r, n1, n2 UNION MATCH (n2 {visId: {id}})<-[r]-(n1) WHERE NOT n1:Graph RETURN r, n1, n2 UNION MATCH (a {visId: {id}})-[]-(n1)-[r]->(n2) WHERE NOT n2:Graph AND NOT n1:Graph RETURN r, n1, n2 UNION MATCH (a {visId: {id}})-[]-(n2)<-[r]-(n1) WHERE NOT n2:Graph AND NOT n1:Graph RETURN r, n1, n2 UNION MATCH (a {visId: {id}})-[]-(b)-[]-(n1)-[r]->(n2) WHERE NOT n2:Graph AND NOT n1:Graph AND NOT b:Graph RETURN r, n1, n2 UNION MATCH (a {visId: {id}})-[]-(b)-[]-(n2)<-[r]-(n1) WHERE NOT n2:Graph AND NOT n1:Graph AND NOT b:Graph RETURN r, n1, n2`, params)
     .subscribe({
       onNext: function (record) {
         var rec = {
@@ -231,6 +232,48 @@ neo4j.createConnection('neo4j', '12345', function(session) {
       },
       onError: function (error) {
         console.log(error)
+        res.status(500)
+        res.send(JSON.stringify({result: "error", message: "Database failed to respond to request"}))
+      }
+    })
+  })
+
+  app.post("/api/addNode", function (req, res) {
+    var name = req.params.name // force to conform
+    var type = safeType(req.params.type)
+    var graphId = safeId(graphId)
+    var ids = []
+    var id = 0
+    session.run("MATCH (g:Graph {graphId: {graphId} })-[:contains]-(b) RETURN distinct b.visId",{graphId: graphId})
+    .subscribe({
+      onNext: function (record) {
+        ids.push(record._fields[0].low)
+      },
+      onCompleted: function () {
+        for (i = 0; i < ids.length + 1 && id == 0; i++) {
+          if (!ids.includes(i)) {
+            id = i
+          }
+        }
+        session.run(`MATCH (g:Graph {graphId: {graphId} }) CREATE (g)-[:contains]->(a:${type} {visId: {id} })`,{graphId: graphId, name: name, id: id})
+        .subscribe({
+          onNext: function (record) {
+
+          },
+          onCompleted: function () {
+            res.send(JSON.stringify({id: id}))
+          },
+          onError: function (error) {
+            console.log(error)
+            res.status(500)
+            res.send(JSON.stringify({result: "error", message: "Failed to add node"}))
+          }
+        })
+      },
+      onError: function (error) {
+        console.log(error)
+        res.status(500)
+        res.send(JSON.stringify({result: "error", message: "Failed to check for available IDs"}))
       }
     })
   })

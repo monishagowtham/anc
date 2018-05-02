@@ -9,7 +9,6 @@ angular.module('rtApp')
   // settings (set these better later)
   $scope.graphId = 0;
   $scope.homeId = 0;
-  $scope.homeType = "Person";
 
   /*
    * Helper function for creating nodes. Converts rgba values to string.
@@ -132,12 +131,15 @@ angular.module('rtApp')
               border: rgba(color.r * .5625,color.g * .5625,color.b * .5625,color.a)
             }
           }
-          $scope.nodes.add([{id: record.properties.visId,
+          if ($scope.nodes.get(record.properties.visId) == undefined){
+            $scope.nodes.add([{id: record.properties.visId,
             label: record.properties.name, color: colors, title: "Error loading info", hidden: true}])
 
-          var localNode = {name: record.properties.name, id: record.properties.visId, rels: 0}
-          $scope.allNodes.push(localNode)
-          getNumberRelationships(localNode)
+            var localNode = {name: record.properties.name, id: record.properties.visId, rels: 0}
+            $scope.allNodes.push(localNode)
+            getNumberRelationships(localNode)
+          }
+
         })
         generateRelationshipList()
       },
@@ -383,6 +385,7 @@ angular.module('rtApp')
     return edges.length
   }
 
+
   /*
    * Update graph around node by id
    */
@@ -400,5 +403,14 @@ angular.module('rtApp')
       setDefaultHomeId()
       generateNodesList()
     }
+
+    /*
+     * Create Node
+     */
+     $scope.createNode = function(name, type) {
+      var query = "CREATE (n:" + getType() + "{ name: {"+ getName() +"}})\nRETURN n"
+
+    }
+
 
 }])

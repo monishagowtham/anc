@@ -9,6 +9,7 @@
     <link href="/styles/graph.css" rel="stylesheet" type="text/css" />
 
     <script src="/node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="/node_modules/popper.js/dist/umd/popper.min.js"></script>
     <script src="/node_modules/angular/angular.js"></script>
     <script src="/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
     <script src="/node_modules/vis/dist/vis.min.js"></script>
@@ -99,7 +100,36 @@
                   </div>
                   <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
                     <div class="card-body">
-                      Create Node Body Location
+                      <form class="form-horizontal" action="/action_page.php">
+                        <div class="form-group">
+                          <label class="control-label col-sm-6" for="email">Select Type:</label>
+                          <div class="col-sm-10">
+                            <div class="btn-group dropdown">
+                              <button type="button" class="btn btn-danger dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                Action
+                              </button>
+                              <div class="dropdown-menu" ng-model="newNodeType">
+                                <a class="dropdown-item" href="#">Action</a>
+                                <a class="dropdown-item" href="#">Another action</a>
+                                <a class="dropdown-item" href="#">Something else here</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="#">Separated link</a>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label class="control-label col-sm-6" for="pwd">Name:</label>
+                          <div class="col-sm-10">
+                            <input type="text" class="form-control" id="pwd" ng-model="newNodeName" placeholder="Enter Node Name">
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <div class="col-sm-offset-2 col-sm-10">
+                            <button type="button" ng-click="createNode(newNodeName,newNodeType)" class="btn btn-outline-success">Submit</button>
+                          </div>
+                        </div>
+                      </form>
                     </div>
                   </div>
                 </div>
