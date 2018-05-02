@@ -64,7 +64,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
   app.get('/api/graphNodes', function (req, res) {
     var graphId = safeId(req.query.graphId)
     var records = []
-    session.run(`MATCH (g:Graph {graphId: ${graphId}})-[:contains]->(n) RETURN distinct n LIMIT 10000`)
+    session.run("MATCH (g:Graph {graphId: {graphId} })-[:contains]->(n) RETURN distinct n LIMIT 10000",{graphId: graphId})
     .subscribe({
       onNext: function (record) {
         var rec = {
@@ -83,13 +83,14 @@ neo4j.createConnection('neo4j', '12345', function(session) {
       },
       onError: function (error) {
         console.log(error)
+        res.send(JSON.stringify({result: "error", message: "Database failed to respond to request"}))
       }
     })
   })
 
   app.get('/api/nodes', function (req, res) {
     var records = []
-    session.run('MATCH (n1) RETURN n1 LIMIT 10000')
+    session.run("MATCH (n1) RETURN n1 LIMIT 10000")
     .subscribe({
       onNext: function (record) {
         var rec = {
@@ -114,7 +115,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
 
   app.get('/api/relationships', function (req, res) {
     var records = []
-    session.run('MATCH (n1)-[r]->(n2) RETURN r, n1, n2 LIMIT 10000')
+    session.run("MATCH (n1)-[r]->(n2) RETURN r, n1, n2 LIMIT 10000")
     .subscribe({
       onNext: function (record) {
         var rec = {
@@ -137,11 +138,12 @@ neo4j.createConnection('neo4j', '12345', function(session) {
   })
 
   app.get('/api/graphAroundNode', function (req,res) {
-    var type = safeType(req.query.type)
-    var id = safeId(req.query.id)
-    var graphId = safeId(req.query.graphId)
+    var params = {
+      id: safeId(req.query.id),
+      graph: safeId(req.query.graphId)
+    }
     var records = []
-    session.run(`MATCH (a:${type} {visId: ${id}})<-[:contains]-(g:Graph {graphId: ${graphId}})-[:contains]->(n1)-[r]->(n2) WHERE (n1)-[*0..3]-(a) RETURN distinct r, n1, n2`)
+    session.run("MATCH (a:Person {visId: {id} })<-[:contains]-(g:Graph {graphId: {graph} })-[:contains]->(n1)-[r]->(n2) WHERE (n1)-[*0..3]-(a) RETURN distinct r, n1, n2", params)
     .subscribe({
       onNext: function (record) {
         var rec = {
@@ -154,7 +156,44 @@ neo4j.createConnection('neo4j', '12345', function(session) {
       },
       onCompleted: function () {
         //session.close()
+        res.status(200)
         res.send(JSON.stringify({ neoRecords: records}))
+      },
+      onError: function (error) {
+        console.log(error)
+        res.status(500)
+        res.send(JSON.stringify({result: "error", message: "Database failed to respond to request"}))
+      }
+    })
+  })
+
+  app.post("/api/addNode", function (req, res) {
+    var name = req.params.name
+    var ids = []
+    var id = 0
+    session.run("MATCH (g:Graph {graphId: {graphId} })-[:contains]-(b) RETURN distinct b.visId",{graphId: graphId})
+    .subscribe({
+      onNext: function (record) {
+        ids.push(record._fields[0].low)
+      },
+      onCompleted: function () {
+        for (i = 0; i < ids.length + 1 && id == 0; i++) {
+          if (!ids.contains(i)) {
+            id = i
+          }
+        }
+        session.run("MATCH (g:Graph {graphId: {graphId} }) CREATE (g)-[:contains]->(: {type} {id: {id} })",{graphId: graphId, type: type, name: name})
+        .subscribe({
+          onNext: function (record) {
+
+          },
+          onCompleted: function () {
+            res.send(id)
+          },
+          onError: function (error) {
+            console.log(error)
+          }
+        })
       },
       onError: function (error) {
         console.log(error)

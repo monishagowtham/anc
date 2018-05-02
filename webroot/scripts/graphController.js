@@ -9,7 +9,6 @@ angular.module('rtApp')
   // TEMPORARY settings UNTIL MULTIUSER SETTINGS ARE ADDED
   $scope.graphId = 0;
   $scope.homeId = 0;
-  $scope.homeType = "Person";
 
   /*
    * Helper function for creating nodes. Converts rgba values to string.
@@ -121,7 +120,7 @@ angular.module('rtApp')
    */
   $http({
           method : "GET",
-          url : `http://localhost:8005/api/graphAroundNode?id=${$scope.homeId}&type=${$scope.homeType}&graph=${$scope.graphId}`
+          url : `http://localhost:8005/api/graphAroundNode?id=${$scope.homeId}&graph=${$scope.graphId}`
   })
   .then(function mySuccess(response) {
     response.data.neoRecords.forEach(function(record){
