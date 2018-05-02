@@ -135,7 +135,9 @@ angular.module('rtApp')
           $scope.nodes.add([{id: record.properties.visId,
             label: record.properties.name, color: colors, title: "Error loading info", hidden: true}])
 
-          $scope.allNodes.push({name: record.properties.name, id: record.properties.visId})
+          var localNode = {name: record.properties.name, id: record.properties.visId, rels: 0}
+          $scope.allNodes.push(localNode)
+          getNumberRelationships(localNode)
         })
         generateRelationshipList()
       },
@@ -226,6 +228,19 @@ angular.module('rtApp')
        function myError(response) {
            console.log("Failed to retrieve relationships from database")
        });
+   }
+
+   function getNumberRelationships(node) {
+     $http({
+         method : "GET",
+         url : `http://localhost:8005/api/numberRelationships?graphId=${$scope.graphId}&id=${node.id}`
+     })
+     .then(function mySuccess(response) {
+       node.rels=response.data.count
+     },
+     function myError(response) {
+         console.log("Failed to retrieve number of relationships to node")
+     });
    }
 
    /*
