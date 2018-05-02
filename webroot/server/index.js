@@ -34,6 +34,27 @@ function safeType(type) {
 }
 
 /*
+ * Forces name to match format safe for database
+ */
+function safeName(name) {
+  // Make sure type is even a string. If not, return "Person".
+  if (name == undefined || !(typeof name === "string" || name instanceof String)) {
+    return "Unnamed"
+  }
+
+  // Remove non alphabetical letters and force lowercase
+  name = name.replace(/[^a-zA-Z\s]/gi, '')
+
+  // Shorten string if it's long, make it Person if it's empty
+  if (name.length > 100) {
+    name = name.slice(0,100)
+  } else if (name.length == 0) {
+    name = "Unnamed"
+  }
+  return name
+}
+
+/*
  * Forces id to be an integer
  */
 function safeId(id) {
@@ -72,7 +93,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
           properties: record._fields[0].properties
         }
         if (rec.properties.visId != null) {
-          rec.properties.visId = rec.properties.visId.low
+          rec.properties.visId = (rec.properties.visId.low == undefined ? rec.properties.visId : rec.properties.visId.low)
           records.push(rec)
         }
       },
@@ -92,7 +113,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
      session.run(`MATCH ({visId: ${id}})-[r]-(b) WHERE NOT b:Graph RETURN count(r) as count`)
      .subscribe({
        onNext: function (record) {
-         records.count = record._fields[0].low
+         records.count = (record._fields[0].low == undefined ? record._fields[0] : record._fields[0].low)
        },
        onCompleted: function () {
          res.send(JSON.stringify(records))
@@ -170,7 +191,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
           properties: record._fields[0].properties
         }
         if (rec.properties.visId != null) {
-          rec.properties.visId = rec.properties.visId.low
+          rec.properties.visId = (rec.properties.visId.low == undefined ? rec.properties.visId : rec.properties.visId.low)
           records.push(rec)
         }
       },
@@ -194,8 +215,8 @@ neo4j.createConnection('neo4j', '12345', function(session) {
         var rec = {
           type: record._fields[0].type,
           properties: record._fields[0].properties,
-          to: record._fields[1].properties.visId.low,
-          from: record._fields[2].properties.visId.low
+          to: (record._fields[1].properties.visId.low == undefined ? record._fields[1].properties.visId : record._fields[1].properties.visId.low),
+          from: (record._fields[2].properties.visId.low == undefined ? record._fields[2].properties.visId : record._fields[2].properties.visId.low)
         }
         records.push(rec)
       },
@@ -221,8 +242,8 @@ neo4j.createConnection('neo4j', '12345', function(session) {
         var rec = {
           type: record._fields[0].type,
           properties: record._fields[0].properties,
-          to: record._fields[1].properties.visId.low,
-          from: record._fields[2].properties.visId.low
+          to: (record._fields[1].properties.visId.low == undefined ? record._fields[1].properties.visId : record._fields[1].properties.visId.low),
+          from: (record._fields[2].properties.visId.low == undefined ? record._fields[2].properties.visId : record._fields[2].properties.visId.low)
         }
         records.push(rec)
       },
@@ -239,15 +260,15 @@ neo4j.createConnection('neo4j', '12345', function(session) {
   })
 
   app.post("/api/addNode", function (req, res) {
-    var name = req.params.name // force to conform
-    var type = safeType(req.params.type)
-    var graphId = safeId(graphId)
+    var name = safeName(req.query.name)
+    var type = safeType(req.query.type)
+    var graphId = safeId(req.query.graph)
     var ids = []
     var id = 0
-    session.run("MATCH (g:Graph {graphId: {graphId} })-[:contains]-(b) RETURN distinct b.visId",{graphId: graphId})
+    session.run("MATCH (g:Graph {graphId: {graphId} })-[:contains]->(b) RETURN distinct b.visId",{graphId: graphId})
     .subscribe({
       onNext: function (record) {
-        ids.push(record._fields[0].low)
+        ids.push(record._fields[0].low == undefined ? record._fields[0] : record._fields[0].low)
       },
       onCompleted: function () {
         for (i = 0; i < ids.length + 1 && id == 0; i++) {
@@ -255,10 +276,9 @@ neo4j.createConnection('neo4j', '12345', function(session) {
             id = i
           }
         }
-        session.run(`MATCH (g:Graph {graphId: {graphId} }) CREATE (g)-[:contains]->(a:${type} {visId: {id} })`,{graphId: graphId, name: name, id: id})
+        session.run(`MATCH (g:Graph {graphId: {graphId} }) CREATE (g)-[:contains]->(a:${type} {visId: {id}, name: {name}})`,{graphId: graphId, name: name, id: id})
         .subscribe({
           onNext: function (record) {
-
           },
           onCompleted: function () {
             res.send(JSON.stringify({id: id}))
@@ -274,6 +294,29 @@ neo4j.createConnection('neo4j', '12345', function(session) {
         console.log(error)
         res.status(500)
         res.send(JSON.stringify({result: "error", message: "Failed to check for available IDs"}))
+      }
+    })
+  })
+
+  app.post("/api/addRelationship", function (req, res) {
+    var name = safeName(req.query.name)
+    var params = {
+      prettyName: safeName(req.query.pretty),
+      graphId: safeId(req.query.graph),
+      from: safeId(req.query.from),
+      to: safeId(req.query.to)
+    }
+    session.run(`MATCH (a {visId: {from}})<-[:contains]-(g:Graph {graphId: {graphId} })-[:contains]->(b {visId: {to}}) MERGE (a)-[:${name} {prettyName: {prettyName}}]->(b)`,params)
+    .subscribe({
+      onNext: function (record) {
+      },
+      onCompleted: function () {
+        res.send(JSON.stringify({result: "success"}))
+      },
+      onError: function (error) {
+        console.log(error)
+        res.status(500)
+        res.send(JSON.stringify({result: "error", message: "Failed to add Relationship"}))
       }
     })
   })

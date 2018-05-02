@@ -9,6 +9,12 @@ angular.module('rtApp')
   // settings (set these better later)
   $scope.graphId = 0;
   $scope.homeId = 0;
+  $scope.nodeTypes = [
+    "Person",
+    "Document",
+    "Tribe"
+  ]
+  $scope.inPreview = false
 
   /*
    * Helper function for creating nodes. Converts rgba values to string.
@@ -83,7 +89,7 @@ angular.module('rtApp')
     },
     function myError(response) {
         console.log("Failed to retrieve Node info from database")
-    });
+    })
   }
 
 
@@ -98,7 +104,7 @@ angular.module('rtApp')
       })
       .then(function mySuccess(response) {
         $scope.nodes.clear()
-        allNodes = []
+        $scope.allNodes = []
         response.data.forEach(function(record){
           var color = {
             r: 0,
@@ -141,11 +147,11 @@ angular.module('rtApp')
           }
 
         })
-        generateRelationshipList()
+        $scope.generateRelationshipList()
       },
       function myError(response) {
           console.log("Failed to retrieve nodes from database")
-      });
+      })
    }
 
    /*
@@ -161,13 +167,16 @@ angular.module('rtApp')
    * Get all relationships for this graph from the Express API and add them to
    * $scope.relationships to be used in graph
    */
-   function generateRelationshipList() {
+   $scope.generateRelationshipList = function() {
      $http({
             method : "GET",
             url : `http://localhost:8005/api/graphAroundNode?id=${$scope.homeId}&graph=${$scope.graphId}`
        })
        .then(function mySuccess(response) {
+         $scope.inPreview = false
+         hideAllNodes()
          $scope.edges.clear()
+         edgeId = 0
          filterRelationships = []
          $scope.nodes.update({id: $scope.homeId, hidden: false})
          response.data.forEach(function(record){
@@ -229,7 +238,7 @@ angular.module('rtApp')
        },
        function myError(response) {
            console.log("Failed to retrieve relationships from database")
-       });
+       })
    }
 
    function getNumberRelationships(node) {
@@ -242,7 +251,7 @@ angular.module('rtApp')
      },
      function myError(response) {
          console.log("Failed to retrieve number of relationships to node")
-     });
+     })
    }
 
    /*
@@ -385,18 +394,17 @@ angular.module('rtApp')
     return edges.length
   }
 
-
   /*
    * Update graph around node by id
    */
    $scope.moveTo = function(id) {
       $scope.homeId = id
       hideAllNodes()
-      generateRelationshipList()
+      $scope.generateRelationshipList()
    }
 
    /*
-    * Switch graphs
+    * Switch graphs (setDefaultHomeId not yet implemented)
     */
     $scope.switchGraphs = function(graphId) {
       $scope.graphId = graphId
@@ -407,9 +415,97 @@ angular.module('rtApp')
     /*
      * Create Node
      */
-     $scope.createNode = function(name, type) {
-      var query = "CREATE (n:" + getType() + "{ name: {"+ getName() +"}})\nRETURN n"
+     $scope.createNode = function(name,type) {
+      $http({
+              method : "POST",
+              url : `http://localhost:8005/api/addNode?graph=${$scope.graphId}&name=${name}&type=${type}`
+      })
+      .then(function mySuccess(response) {
+          console.log(response.data.id)
+          generateNodesList()
+      },
+      function myError(response) {
+          console.log(response)
+      })
+    }
 
+    /*
+     * Create Relationship (from and to are swapped and I'm not sure why but it
+     * makes sense this way)
+     */
+     $scope.createRelationship = function(prettyName,to,from) {
+       name = prettyName.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, i) {
+          if (+match === 0) return ""
+          return i == 0 ? match.toLowerCase() : match.toUpperCase()
+        });
+      $http({
+              method : "POST",
+              url : `http://localhost:8005/api/addRelationship?graph=${$scope.graphId}&name=${name}&pretty=${prettyName}&from=${from}&to=${to}`
+      })
+      .then(function mySuccess(response) {
+          $scope.generateRelationshipList()
+      },
+      function myError(response) {
+          console.log(response)
+      })
+    }
+
+    /*
+     * Preview Relationship Locally (from and to are swapped and I'm not sure why
+     * but it makes sense this way)
+     */
+    $scope.previewRelationship = function(prettyName,to,from) {
+      console.log(prettyName + ' ' + from + ' ' + to)
+      $scope.inPreview = true
+      var newLabel = prettyName
+      // Check if edge exists in opposite direction
+      var edges = $scope.edges.get({
+        filter: function (edge) {
+          return (edge.label == newLabel && edge.from == to
+                  && edge.to == from)
+        }
+      })
+      if (edges.length == 0) {
+
+        // If it doesn't exist the other way, add it
+        $scope.edges.add([{id: edgeId, from: from, to: to,
+                          label: newLabel, arrows: 'from', color:'rgba(255,255,0,1)',
+                           hidden: false}])
+
+        // Make node visible since it will appear on the graph
+        $scope.nodes.update({id: from, hidden: false})
+        $scope.nodes.update({id: to, hidden: false})
+
+        // Loop through relationships and push to filterRelationships
+        var typeNew = true
+        $scope.filterRelationships.forEach((filterRel) => {
+          if (filterRel === newLabel) {
+            typeNew = false
+          }
+        })
+        if (typeNew) {
+          $scope.filterRelationships.push(newLabel)
+        }
+
+      } else {
+        // If it does exist, make the arrow bidirectional
+        edges.forEach((edge)=> {
+          $scope.edges.update({id: edge.id, color: 'rgba(0,255,255,1)', arrows:'to, from'})
+        })
+      }
+
+      // increment edgeId so all edge ids are unique
+      edgeId ++
+
+      // re-initialize graph
+      var graph = document.getElementById('graph')
+      $scope.data = {
+        nodes: $scope.nodes,
+        edges: $scope.edges
+      }
+      $scope.options = { physics : { enabled: true }}
+      $scope.network = new vis.Network(graph, $scope.data, $scope.options)
+      setTimeout($scope.jiggleToggle,1000)
     }
 
 
