@@ -385,7 +385,6 @@ angular.module('rtApp')
     return edges.length
   }
 
-
   /*
    * Update graph around node by id
    */
@@ -407,8 +406,12 @@ angular.module('rtApp')
     /*
      * Create Node
      */
-     $scope.createNode = function(name, type) {
-      var query = "CREATE (n:" + getType() + "{ name: {"+ getName() +"}})\nRETURN n"
+
+     $scope.createNode = function() {
+      var name = document.getElementById('pwd').value
+      var type = document.getElementById('')
+      var query = "CREATE (n:" + name + "{ name: {" + name + "}})\nRETURN n"
+      console.log(query)
 
     }
 
