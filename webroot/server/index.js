@@ -54,7 +54,6 @@ function safeName(name) {
   return name
 }
 
-
 /*
  * Forces id to be an integer
  */
@@ -263,7 +262,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
   app.post("/api/addNode", function (req, res) {
     var name = safeName(req.query.name)
     var type = safeType(req.query.type)
-    var graphId = safeId(req.query.graphId)
+    var graphId = safeId(req.query.graph)
     var ids = []
     var id = 0
     session.run("MATCH (g:Graph {graphId: {graphId} })-[:contains]->(b) RETURN distinct b.visId",{graphId: graphId})
@@ -295,6 +294,29 @@ neo4j.createConnection('neo4j', '12345', function(session) {
         console.log(error)
         res.status(500)
         res.send(JSON.stringify({result: "error", message: "Failed to check for available IDs"}))
+      }
+    })
+  })
+
+  app.post("/api/addRelationship", function (req, res) {
+    var name = safeName(req.query.name)
+    var params = {
+      prettyName: safeName(req.query.pretty),
+      graphId: safeId(req.query.graph),
+      from: safeId(req.query.from),
+      to: safeId(req.query.to)
+    }
+    session.run(`MATCH (a {visId: {from}})<-[:contains]-(g:Graph {graphId: {graphId} })-[:contains]->(b {visId: {to}}) MERGE (a)-[:${name} {prettyName: {prettyName}}]->(b)`,params)
+    .subscribe({
+      onNext: function (record) {
+      },
+      onCompleted: function () {
+        res.send(JSON.stringify({result: "success"}))
+      },
+      onError: function (error) {
+        console.log(error)
+        res.status(500)
+        res.send(JSON.stringify({result: "error", message: "Failed to add Relationship"}))
       }
     })
   })
