@@ -78,6 +78,11 @@ a {
   color: lightgrey;
   text-decoration: line-through;
 }
+
+.relationship-name.unchosen {
+  color: grey;
+}
+
 .badge.negated {
   background-color: lightgrey;
 }

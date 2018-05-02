@@ -191,7 +191,8 @@ neo4j.createConnection('neo4j', '12345', function(session) {
     var id = safeId(req.query.id)
     var graphId = safeId(req.query.graphId)
     var records = []
-    session.run(`MATCH (a {visId: ${id}})<-[:contains]-(g:Graph {graphId: ${graphId}})-[:contains]->(n1)-[r]->(n2) WHERE (n1)-[*0..3]-(a) RETURN distinct r, n1, n2`)
+    //session.run(`MATCH (n1)-[m*0..3]-(a {visId: ${id}})<-[:contains]-(g:Graph {graphId: ${graphId}})-[:contains]->(n1)-[r]->(n2) WHERE ALL(p in m WHERE NOT type(p)="contains") RETURN r, n1, n2 UNION MATCH (n1 {visId: ${id}})-[r]->(n2) WHERE NOT n2:Graph RETURN r, n1, n2 UNION MATCH (n2 {visId: ${id}})<-[r]-(n1) WHERE NOT n1:Graph RETURN r, n1, n2`)
+    session.run(`MATCH (n1 {visId: ${id}})-[r]->(n2) WHERE NOT n2:Graph RETURN r, n1, n2 UNION MATCH (n2 {visId: ${id}})<-[r]-(n1) WHERE NOT n1:Graph RETURN r, n1, n2 UNION MATCH (a {visId: ${id}})-[]-(n1)-[r]->(n2) WHERE NOT n2:Graph AND NOT n1:Graph RETURN r, n1, n2 UNION MATCH (a {visId: ${id}})-[]-(n2)<-[r]-(n1) WHERE NOT n2:Graph AND NOT n1:Graph RETURN r, n1, n2 UNION MATCH (a {visId: ${id}})-[]-(b)-[]-(n1)-[r]->(n2) WHERE NOT n2:Graph AND NOT n1:Graph AND NOT b:Graph RETURN r, n1, n2 UNION MATCH (a {visId: ${id}})-[]-(b)-[]-(n2)<-[r]-(n1) WHERE NOT n2:Graph AND NOT n1:Graph AND NOT b:Graph RETURN r, n1, n2`)
     .subscribe({
       onNext: function (record) {
         var rec = {

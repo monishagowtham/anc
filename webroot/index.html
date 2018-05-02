@@ -76,9 +76,9 @@
                       <input id="node-search" class="form-control" ng-model="nodeSearch" placeholder="Filter"/><br />
                       <div class="btn-group-toggle" data-toggle="buttons">
                         <div class="pre-scrollable">
-                            <a data-ng-repeat="node in allNodes | filter: nodeSearch" on-finish-render="finished" href="javascript://void()" ng-click='hideType(relationship)' class="list-group-item" data-toggle="tooltip">
-                                <h4 ng-if="!getNodeById(node.id).hidden" class="relationship-name">{{node.name}}<span class="badge badge-dark relationship-count float-right">{{node.id}}</span></h4>
-                                <h4 ng-if="getNodeById(node.id).hidden" class="relationship-name negated">{{node.name}}<span class="badge badge-secondary negated relationship-count float-right">{{node.id}}</span></h4>
+                            <a data-ng-repeat="node in allNodes | filter: nodeSearch" on-finish-render="finished" href="javascript://void()" ng-click='moveTo(node.id)' class="list-group-item" data-toggle="tooltip">
+                                <h4 ng-if="node.id == homeId" class="relationship-name">{{node.name}}<span class="badge badge-dark relationship-count float-right">{{node.id}}</span></h4>
+                                <h4 ng-if="node.id != homeId" class="relationship-name unchosen">{{node.name}}<span class="badge badge-secondary relationship-count float-right">{{node.id}}</span></h4>
                                 <input id="checkbox{{relationship}}" type="checkbox" style="display:none" ng-checked="getFirstEdgeWithLabel(relationship).hidden">
                             </a>
                             <br />
