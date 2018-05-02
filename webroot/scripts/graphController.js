@@ -409,8 +409,8 @@ angular.module('rtApp')
 
      $scope.createNode = function() {
       var name = document.getElementById('pwd').value
-      var type = document.getElementById('')
-      var query = "CREATE (n:" + name + "{ name: {" + name + "}})\nRETURN n"
+      var type = document.getElementById('nodeType').value
+      var query = "CREATE (n:" + type + "{ name: {" + name + "}})\nRETURN n"
       console.log(query)
 
     }
