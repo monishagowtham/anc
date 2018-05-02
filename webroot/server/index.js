@@ -278,7 +278,8 @@ neo4j.createConnection('neo4j', '12345', function(session) {
       stamp: Math.floor(new Date() / 1000)
     }
     if (params.user === "INVALID USERNAME") {
-      res.send(JSON.stringify({result: "error", message: "Invalid username"}))
+      console.log(error)
+      res.sendStatus(403)
       return
     }
     session.run('MATCH (u:User {userId: {user}})-[:password]->(p) RETURN p.pwd',params)
@@ -286,21 +287,26 @@ neo4j.createConnection('neo4j', '12345', function(session) {
       onNext: function (record) {
         bcrypt.compare(req.query.p,record._fields[0], (err, result) => {
           if (err) {
-            res.send(JSON.stringify({result: "error", message: "Incorrect Username or Password"}))
+            console.log(err)
+            res.sendStatus(403)
           } else {
-            session.run('MATCH (u:User {userId: {user}}) CREATE (u)-[:apiKey]->(:ApiKey {key: {key}, stamp: {stamp}})',params)
-            .subscribe({
-              onNext: function (record) {
-              },
-              onCompleted: function () {
-                //session.close()
-                res.send(JSON.stringify({key: params.key}))
-              },
-              onError: function (error) {
-                console.log(error)
-                res.send(JSON.stringify({result: "error", message: "Incorrect Username or Password"}))
-              }
-            })
+            if (!result) {
+              res.sendStatus(403)
+            } else {
+              session.run('MATCH (u:User {userId: {user}}) CREATE (u)-[:apiKey]->(:ApiKey {key: {key}, stamp: {stamp}})',params)
+              .subscribe({
+                onNext: function (record) {
+                },
+                onCompleted: function () {
+                  //session.close()
+                  res.send(JSON.stringify({key: params.key}))
+                },
+                onError: function (error) {
+                  console.log(error)
+                  res.sendStatus(403)
+                }
+              })
+            }
           }
         })
       },
@@ -310,7 +316,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
       onError: function (error) {
         console.log(error)
 
-        res.send(JSON.stringify({result: "error", message: "Incorrect Username or Password"}))
+        res.sendStatus(403)
       }
     })
   })
