@@ -85,6 +85,24 @@ neo4j.createConnection('neo4j', '12345', function(session) {
     })
   })
 
+   app.get('/api/numberRelationships', function (req, res) {
+     var graphId = safeId(req.query.graphId)
+     var id = safeId(req.query.id)
+     var records = {count: 0}
+     session.run(`MATCH ({visId: ${id}})-[r]-(b) WHERE NOT b:Graph RETURN count(r) as count`)
+     .subscribe({
+       onNext: function (record) {
+         records.count = record._fields[0].low
+       },
+       onCompleted: function () {
+         res.send(JSON.stringify(records))
+       },
+       onError: function (error) {
+         console.log(error)
+       }
+     })
+   })
+
   app.get('/api/relationshipsByNode', function (req, res) {
     var graphId = safeId(req.query.graphId)
     var visId = safeId(req.query.id)
@@ -101,6 +119,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
         .subscribe({
           onNext: function (record) {
             var rec = {
+              prettyName: record._fields[0].properties.prettyName,
               type: record._fields[0].type,
               to: record._fields[1].properties.name
             }
@@ -112,6 +131,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
             .subscribe({
               onNext: function (record) {
                 var rec = {
+                  prettyName: record._fields[0].properties.prettyName,
                   type: record._fields[0].type,
                   from: record._fields[1].properties.name
                 }

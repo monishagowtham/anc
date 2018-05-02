@@ -65,13 +65,17 @@ angular.module('rtApp')
       var html = ""
       html += `<h6>${response.data.name.toString()}</h6><br/>`
       response.data.from.forEach(function(record){
-        html += `<p>has ${record.type} ${record.to}</p>`
+        var prettyName = (record.prettyName == undefined ?
+                         record.type : record.prettyName)
+        html += `<p>has ${prettyName} ${record.to}</p>`
       })
       if (response.data.to.length > 0 && response.data.from.length > 0) {
         html += '<br />'
       }
       response.data.to.forEach(function(record){
-        html += `<p>${record.type} of ${record.from}</p>`
+        var prettyName = (record.prettyName == undefined ?
+                         record.type : record.prettyName)
+        html += `<p>${prettyName} of ${record.from}</p>`
       })
       var output = document.createElement('div')
       output.innerhtml = html.trim()
@@ -95,6 +99,7 @@ angular.module('rtApp')
       })
       .then(function mySuccess(response) {
         $scope.nodes.clear()
+        allNodes = []
         response.data.forEach(function(record){
           var color = {
             r: 0,
@@ -130,7 +135,9 @@ angular.module('rtApp')
           $scope.nodes.add([{id: record.properties.visId,
             label: record.properties.name, color: colors, title: "Error loading info", hidden: true}])
 
-          $scope.allNodes.push({name: record.properties.name, id: record.properties.visId})
+          var localNode = {name: record.properties.name, id: record.properties.visId, rels: 0}
+          $scope.allNodes.push(localNode)
+          getNumberRelationships(localNode)
         })
         generateRelationshipList()
       },
@@ -159,12 +166,15 @@ angular.module('rtApp')
        })
        .then(function mySuccess(response) {
          $scope.edges.clear()
+         filterRelationships = []
          $scope.nodes.update({id: $scope.homeId, hidden: false})
          response.data.forEach(function(record){
+           var newLabel = (record.properties.prettyName == undefined ?
+                            record.type : record.properties.prettyName)
            // Check if edge exists in opposite direction
            var edges = $scope.edges.get({
              filter: function (edge) {
-               return (edge.label == record.type && edge.from == record.to
+               return (edge.label == newLabel && edge.from == record.to
                        && edge.to == record.from)
              }
            })
@@ -172,7 +182,7 @@ angular.module('rtApp')
 
              // If it doesn't exist the other way, add it
              $scope.edges.add([{id: edgeId, from: record.from, to: record.to,
-                               label: record.type, arrows: 'from', hidden: false}])
+                               label: newLabel, arrows: 'from', hidden: false}])
 
              // Make node visible since it will appear on the graph
              $scope.nodes.update({id: record.from, hidden: false})
@@ -181,12 +191,12 @@ angular.module('rtApp')
              // Loop through relationships and push to filterRelationships
              var typeNew = true
              $scope.filterRelationships.forEach((filterRel) => {
-               if (filterRel === record.type) {
+               if (filterRel === newLabel) {
                  typeNew = false
                }
              })
              if (typeNew) {
-               $scope.filterRelationships.push(record.type)
+               $scope.filterRelationships.push(newLabel)
              }
 
            } else {
@@ -218,6 +228,19 @@ angular.module('rtApp')
        function myError(response) {
            console.log("Failed to retrieve relationships from database")
        });
+   }
+
+   function getNumberRelationships(node) {
+     $http({
+         method : "GET",
+         url : `http://localhost:8005/api/numberRelationships?graphId=${$scope.graphId}&id=${node.id}`
+     })
+     .then(function mySuccess(response) {
+       node.rels=response.data.count
+     },
+     function myError(response) {
+         console.log("Failed to retrieve number of relationships to node")
+     });
    }
 
    /*
