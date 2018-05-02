@@ -65,13 +65,17 @@ angular.module('rtApp')
       var html = ""
       html += `<h6>${response.data.name.toString()}</h6><br/>`
       response.data.from.forEach(function(record){
-        html += `<p>has ${record.type} ${record.to}</p>`
+        var prettyName = (record.prettyName == undefined ?
+                         record.type : record.prettyName)
+        html += `<p>has ${prettyName} ${record.to}</p>`
       })
       if (response.data.to.length > 0 && response.data.from.length > 0) {
         html += '<br />'
       }
       response.data.to.forEach(function(record){
-        html += `<p>${record.type} of ${record.from}</p>`
+        var prettyName = (record.prettyName == undefined ?
+                         record.type : record.prettyName)
+        html += `<p>${prettyName} of ${record.from}</p>`
       })
       var output = document.createElement('div')
       output.innerhtml = html.trim()

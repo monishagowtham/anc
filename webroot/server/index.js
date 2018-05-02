@@ -101,6 +101,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
         .subscribe({
           onNext: function (record) {
             var rec = {
+              prettyName: record._fields[0].properties.prettyName,
               type: record._fields[0].type,
               to: record._fields[1].properties.name
             }
@@ -112,6 +113,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
             .subscribe({
               onNext: function (record) {
                 var rec = {
+                  prettyName: record._fields[0].properties.prettyName,
                   type: record._fields[0].type,
                   from: record._fields[1].properties.name
                 }
