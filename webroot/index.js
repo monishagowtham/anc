@@ -15,11 +15,18 @@ console.log("The server is running on port " + config.port)
 * @return true on completion
 */
 function handleRequest(request, response, serve) {
-  if (request.uri.path == '/istheserverrunning') {
+  if (request.uri.path == '/serverhealth') {
     serve(request, response, JSON.stringify({
       uri:request.uri,
       message:'yes',
       query: request.query
+    }))
+    return true
+  } else if (request.uri.path == '/config') {
+    serve(request, response, JSON.stringify({
+      protocol: process.env.RTREE_PROTOCOL || "http",
+      domain: process.env.RTREE_DOMAIN || "localhost",
+      port:process.env.RTREE_PORT || 8005
     }))
     return true
   }

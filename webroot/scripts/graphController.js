@@ -4,9 +4,8 @@
  */
 
 angular.module('rtApp')
-        .controller('GraphController', ($scope,$http,Login) => {
+        .controller('GraphController', ($scope,$http,Login,Express) => {
 
-  // settings (set these better later)
   $scope.loginObject = Login
   $scope.graphId = 1
   $scope.homeId = 0
@@ -21,9 +20,12 @@ angular.module('rtApp')
   //var password = 'hunter2'
   $scope.key = ''
   $scope.loginObject.loginFunction = function (username, password) {
+    var request = Express.requestFactory("requestApiKey")
+      .addParameter("u",username)
+      .addParameter("p",password)
     $http({
             method : "GET",
-            url : `http://localhost:8005/api/requestApiKey?u=${username}&p=${password}`
+            url : request.build()
     })
     .then(function mySuccess(response) {
       console.log("success")
@@ -86,9 +88,13 @@ angular.module('rtApp')
 
   /* Function to get node info */
   function setNodeInfo (id) {
+    var request = Express.requestFactory('relationshipsByNode')
+      .addParameter('graphId',$scope.graphId)
+      .addParameter('u',$scope.graphAuthor)
+      .addParameter('id',id)
     $http({
             method : "GET",
-            url : `http://localhost:8005/api/relationshipsByNode?id=${id}&graphId=${$scope.graphId}&u=${$scope.graphAuthor}`
+            url : request.build()
     })
     .then(function mySuccess(response) {
       var html = ""
@@ -121,80 +127,87 @@ angular.module('rtApp')
    * Get all nodes for this graph from the Express API and add them to
    * $scope.nodes to be used in the graph
    */
-   function generateNodesList() {
-      $http({
-          method : "GET",
-          url : `http://localhost:8005/api/graphNodes?graphId=${$scope.graphId}&u=${$scope.graphAuthor}`
-      })
-      .then(function mySuccess(response) {
-        $scope.nodes.clear()
-        $scope.allNodes = []
-        response.data.forEach(function(record){
-          var color = {
-            r: 0,
-            g: 0,
-            b: 0,
-            a: 1
+  function generateNodesList() {
+    var request = Express.requestFactory('graphNodes')
+      .addParameter("graphId",$scope.graphId)
+      .addParameter("u",$scope.graphAuthor)
+    $http({
+        method : "GET",
+        url : request.build()
+    })
+    .then(function mySuccess(response) {
+      $scope.nodes.clear()
+      $scope.allNodes = []
+      response.data.forEach(function(record){
+        var color = {
+          r: 0,
+          g: 0,
+          b: 0,
+          a: 1
+        }
+        switch(record.type){
+          case "Person":
+            color.r = 250
+            color.g = 175
+            color.b = 175
+            break;
+          case "Tribe":
+            color.r = 225
+            color.g = 225
+            color.b = 125
+            break;
+          default:
+            color.r = 125
+            color.g = 125
+            color.b = 250
+            break;
+        }
+        var colors = {
+          background: rgba(color.r,color.g,color.b,color.a),
+          border: rgba(color.r * .75,color.g * .75,color.b * .75,color.a),
+          highlight: {
+            background: rgba(color.r * .75,color.g * .75,color.b * .75,color.a),
+            border: rgba(color.r * .5625,color.g * .5625,color.b * .5625,color.a)
           }
-          switch(record.type){
-            case "Person":
-              color.r = 250
-              color.g = 175
-              color.b = 175
-              break;
-            case "Tribe":
-              color.r = 225
-              color.g = 225
-              color.b = 125
-              break;
-            default:
-              color.r = 125
-              color.g = 125
-              color.b = 250
-              break;
-          }
-          var colors = {
-            background: rgba(color.r,color.g,color.b,color.a),
-            border: rgba(color.r * .75,color.g * .75,color.b * .75,color.a),
-            highlight: {
-              background: rgba(color.r * .75,color.g * .75,color.b * .75,color.a),
-              border: rgba(color.r * .5625,color.g * .5625,color.b * .5625,color.a)
-            }
-          }
-          if ($scope.nodes.get(record.properties.visId) == undefined){
-            $scope.nodes.add([{id: record.properties.visId,
-            label: record.properties.name, color: colors, title: "Error loading info", hidden: true}])
+        }
+        if ($scope.nodes.get(record.properties.visId) == undefined){
+          $scope.nodes.add([{id: record.properties.visId,
+          label: record.properties.name, color: colors, title: "Error loading info", hidden: true}])
 
-            var localNode = {name: record.properties.name, id: record.properties.visId, rels: 0}
-            $scope.allNodes.push(localNode)
-            getNumberRelationships(localNode)
-          }
+          var localNode = {name: record.properties.name, id: record.properties.visId, rels: 0}
+          $scope.allNodes.push(localNode)
+          getNumberRelationships(localNode)
+        }
 
-        })
-        $scope.generateRelationshipList()
-      },
-      function myError(response) {
-          console.log("Failed to retrieve nodes from database")
       })
+      $scope.generateRelationshipList()
+    },
+    function myError(response) {
+        console.log("Failed to retrieve nodes from database")
+    })
    }
 
    /*
     * reset all nodes to be hidden
     */
-    function hideAllNodes() {
-      $scope.allNodes.forEach((node) => {
-        $scope.nodes.update({id: node.id, hidden: true})
-      })
-    }
+  function hideAllNodes() {
+    $scope.allNodes.forEach((node) => {
+      $scope.nodes.update({id: node.id, hidden: true})
+    })
+  }
 
   /*
    * Get all relationships for this graph from the Express API and add them to
    * $scope.relationships to be used in graph
    */
-   $scope.generateRelationshipList = function() {
+  $scope.generateRelationshipList = function() {
+     var request = Express.requestFactory("graphAroundNode")
+       .addParameter("graphId",$scope.graphId)
+       .addParameter("u",$scope.graphAuthor)
+       .addParameter("id",$scope.homeId)
      $http({
             method : "GET",
-            url : `http://localhost:8005/api/graphAroundNode?id=${$scope.homeId}&graphId=${$scope.graphId}&u=${$scope.graphAuthor}`
+            url : request.build()
        })
        .then(function mySuccess(response) {
          $scope.inPreview = false
@@ -266,9 +279,14 @@ angular.module('rtApp')
    }
 
    function getNumberRelationships(node) {
+     var request = Express.requestFactory("numberRelationships")
+       .addParameter("graphId",$scope.graphId)
+       .addParameter("u",$scope.graphAuthor)
+       .addParameter("id",node.id)
+       .addParameter("u",$scope.graphAuthor)
      $http({
          method : "GET",
-         url : `http://localhost:8005/api/numberRelationships?graphId=${$scope.graphId}&id=${node.id}&u=${$scope.graphAuthor}`
+         url : request.build()
      })
      .then(function mySuccess(response) {
        node.rels=response.data.count
@@ -439,10 +457,16 @@ angular.module('rtApp')
     /*
      * Create Node
      */
-     $scope.createNode = function(name,type) {
+    $scope.createNode = function(name,type) {
+      var request = Express.requestFactory("addNode")
+        .addParameter("graphId",$scope.graphId)
+        .addParameter("u",$scope.graphAuthor)
+        .addParameter("name",name)
+        .addParameter("type",type)
+        .addParameter("key",$scope.key)
       $http({
               method : "POST",
-              url : `http://localhost:8005/api/addNode?graphId=${$scope.graphId}&name=${name}&type=${type}&u=${$scope.graphAuthor}&key=${$scope.key}`
+              url : request.build()
       })
       .then(function mySuccess(response) {
           generateNodesList()
@@ -461,17 +485,25 @@ angular.module('rtApp')
           if (+match === 0) return ""
           return i == 0 ? match.toLowerCase() : match.toUpperCase()
         });
-      $http({
-              method : "POST",
-              url : `http://localhost:8005/api/addRelationship?graphId=${$scope.graphId}&name=${name}&pretty=${prettyName}&from=${from}&to=${to}&u=${$scope.graphAuthor}&key=${$scope.key}`
-      })
-      .then(function mySuccess(response) {
-          $scope.generateRelationshipList()
-      },
-      function myError(response) {
-          console.log(response)
-      })
-    }
+        var request = Express.requestFactory("addNode")
+          .addParameter("graphId",$scope.graphId)
+          .addParameter("u",$scope.graphAuthor)
+          .addParameter("key",$scope.key)
+          .addParameter("name",name)
+          .addParameter("pretty",prettyName)
+          .addParameter("from",from)
+          .addParameter("to",to)
+        $http({
+                method : "POST",
+                url : request.build()
+        })
+        .then(function mySuccess(response) {
+            $scope.generateRelationshipList()
+        },
+        function myError(response) {
+            console.log(response)
+        })
+      }
 
     /*
      * Preview Relationship Locally (from and to are swapped and I'm not sure why
