@@ -5,7 +5,7 @@
 
 angular.module('rtApp')
         .controller('GraphController', ($scope,$http,Login,Express) => {
-
+        
   $scope.loginObject = Login
   $scope.graphId = 1
   $scope.homeId = 0
@@ -21,12 +21,13 @@ angular.module('rtApp')
   $scope.key = ''
   $scope.loginObject.loginFunction = function (username, password) {
     var request = Express.requestFactory("requestApiKey")
-      .addParameter("u",username)
-      .addParameter("p",password)
-    $http({
-            method : "GET",
-            url : request.build()
-    })
+    $http.post(
+      request.build(),
+      $.param({
+        u: username,
+        p: password
+      })
+    )
     .then(function mySuccess(response) {
       console.log("success")
       $scope.key = response.data.key
@@ -34,7 +35,6 @@ angular.module('rtApp')
       $scope.loginObject.username = username
     },
     function myError(response) {
-        console.log("Incorrect Username or Password")
         $scope.loginObject.loginMessage = "Incorrect Username or Password"
         setTimeout(() => {
           $scope.loginObject.loginMessage = ""
@@ -459,14 +459,16 @@ angular.module('rtApp')
      */
     $scope.createNode = function(name,type) {
       var request = Express.requestFactory("addNode")
-        .addParameter("graphId",$scope.graphId)
-        .addParameter("u",$scope.graphAuthor)
-        .addParameter("name",name)
-        .addParameter("type",type)
-        .addParameter("key",$scope.key)
       $http({
               method : "POST",
-              url : request.build()
+              url : request.build(),
+              params : {
+                "graphId": $scope.graphId,
+                "u": $scope.graphAuthor,
+                "name": name,
+                "type": type,
+                "key": $scope.key
+              }
       })
       .then(function mySuccess(response) {
           generateNodesList()
@@ -486,16 +488,18 @@ angular.module('rtApp')
           return i == 0 ? match.toLowerCase() : match.toUpperCase()
         });
         var request = Express.requestFactory("addNode")
-          .addParameter("graphId",$scope.graphId)
-          .addParameter("u",$scope.graphAuthor)
-          .addParameter("key",$scope.key)
-          .addParameter("name",name)
-          .addParameter("pretty",prettyName)
-          .addParameter("from",from)
-          .addParameter("to",to)
         $http({
                 method : "POST",
-                url : request.build()
+                url : request.build(),
+                params : {
+                  "graphId": $scope.graphId,
+                  "u": $scope.graphAuthor,
+                  "name": name,
+                  "key": $scope.key,
+                  "pretty": prettyName,
+                  "from": from,
+                  "to": to
+                }
         })
         .then(function mySuccess(response) {
             $scope.generateRelationshipList()

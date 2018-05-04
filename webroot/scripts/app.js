@@ -6,11 +6,11 @@ rtApp.factory('Login', function() {
 rtApp.factory('Express', function($http) {
   var _protocol = "http"
   var _domain = "localhost"
-  var _port = 8005
+  var _port = 8000
   // Get info from config file (if it exists)
   $http({
           method : "GET",
-          url : "/config"
+          url : "/api/config"
   })
   .then(function mySuccess(response) {
     _protocol = response.data.protocol
