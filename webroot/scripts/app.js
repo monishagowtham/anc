@@ -78,13 +78,15 @@ rtApp.factory('Login', function($http,Express) {
           },1500)
       })
     },
-    loggedIn: false, loginMessage: "",
-    username: "",
-    key: "",
+    loggedIn: false,
+    loginMessage: "",
+    username: undefined,
+    key: undefined,
     logout: ()=>{
       object.loggedIn = false
       object.loginMessage = ""
-      object.username = ""
+      object.username = undefined
+      object.key = undefined
       sessionStorage.removeItem("username")
       sessionStorage.removeItem("key")
       sessionStorage.removeItem("expires")

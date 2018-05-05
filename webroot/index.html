@@ -25,7 +25,7 @@
     <script src="/scripts/app.js"></script>
 
     <!-- Link AngularJS controllers -->
-    <script src="/scripts/navBarController.js"></script>
+    <script src="/scripts/templateController.js"></script>
     <script src='/scripts/graphController.js'></script>
     <script src='/scripts/accountController.js'></script>
     <script src='/scripts/registrationController.js'></script>
@@ -37,23 +37,52 @@
     <!-- Set base URL for AngularJS route html5 mode -->
     <base href="/">
   </head>
-  <body>
-    <div class="controller-div" ng-controller="NavBarController as components">
+  <body ng-controller="TemplateController">
+    <div class="controller-div">
       <header>
-        <nav class="navbar navbar-dark fixed-top bg-dark top-bar">
-          <a class="navbar-brand" href="/#">Relationship Tree</a>
-            <form class="form-inline mt-2 mt-md-0 login-form" ng-if="!loginObject.loggedIn"><span class="red-text">{{loginObject.loginMessage}}</span>
-              <input class="form-control mr-sm-2" type="username" ng-model="username" placeholder="Username" aria-label="username">
-              <input class="form-control mr-sm-2" type="password" ng-model="password" placeholder="Password" aria-label="Password">
-              <button class="btn btn-outline-success my-2 my-sm-0" ng-click="loginObject.login(username, password, false)" type="submit">Login</button>
-            </form>
-            <form class="form-inline mt-2 mt-md-0 login-form" ng-if="loginObject.loggedIn"><span class="red-text">{{loginObject.loginMessage}}</span>
-              <button class="btn btn-outline-danger my-2 my-sm-0" ng-click="loginObject.logout()" type="submit">Logout</button>
-            </form>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+          <a class="navbar-brand" href="#">RelationshipTree</a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav">
+              <li class="nav-item active">
+                <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+              </li>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  Graphs
+                </a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                  <a class="dropdown-item" href="/graph/austin/1/0">Test Graph</a>
+                  <a class="dropdown-item" href="/graph/austin/0/0">Other Test Graph</a>
+                </div>
+              </li>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  Account
+                </a>
+                <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                  <a class="dropdown-item" href="/account">My Profile</a>
+                  <a class="dropdown-item" href="#" data-toggle="modal" data-target="#loginModal" ng-click="fillLogin()">Login</a>
+                  <a class="dropdown-item" href="#" data-toggle="modal" data-target="#loginModal" ng-click="fillRegister()">Register</a>
+                  <a class="dropdown-item text-danger" ng-click="loginObj.logout()" href="#">Logout</a>
+                </div>
+              </li>
+            </ul>
+          </div>
         </nav>
       </header>
-      <!--BELOW: TEMPORARY NG-INCLUDE TO MAKE THINGS WORK UNTIL WE ADD ROUTE-->
       <div class="main-content" ng-view></div>
     </div>
+    <!-- Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalTitle" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content modal-corners" ng-include="'/views/login.html'" ng-if="!register"></div>
+        <div class="modal-content modal-corners" ng-include="'/views/register.html'" ng-if="register"></div>
+      </div>
+    </div>
+  </div>
   </body>
 </html>

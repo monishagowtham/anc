@@ -64,6 +64,7 @@ a {
 
 .top-bar {
   box-shadow: 0 1px 2px;
+  position: relative;
 }
 
 .collapse-title {
@@ -149,6 +150,10 @@ a {
   width: auto;
 }
 
+.deborder {
+  border: none;
+}
+
 .collapse.in.height {
   height: auto;
 }
@@ -221,4 +226,30 @@ button.reg-sizing:hover {
   .cancelbtn.reg-sizing, .signupbtn.reg-sizing {
     width: 100%;
   }
+}
+
+.modal-corners {
+  border-radius: 0.3rem;
+  border: none;
+  overflow: hidden;
+}
+
+#graph {
+  z-index: 1;
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: border-box;
+  border: 1px solid lightgray;
+}
+#nodeId {
+  width: 20px;
+}
+#accordion {
+  z-index: 50;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 30vw;
+  float: right;
 }

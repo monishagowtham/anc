@@ -17,7 +17,7 @@ angular.module('rtApp')
     templateUrl: "/views/account.html",
     controller: "AccountController"
   })
-  .when("/graph", {
+  .when("/graph/:user/:graph/:node", {
     templateUrl: "/views/graph.html",
     controller: "GraphController"
   })

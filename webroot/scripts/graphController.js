@@ -4,16 +4,16 @@
  */
 
 angular.module('rtApp')
-        .controller('GraphController', function ($scope,$http,Login,Express) {
+        .controller('GraphController', function ($scope,$http,$routeParams,Login,Express) {
 
 
   //Check if user is logged in
   $scope.loginObject = Login
   $scope.loginObject.checkSession()
 
-  $scope.graphId = 1
-  $scope.homeId = 0
-  $scope.graphAuthor = 'austin' //this will be in URL and indicates graph user, not logged in user
+  $scope.graphId = $routeParams.graph || 0
+  $scope.homeId = $routeParams.node || 0 // should do some get request to check what the default node should be. NOTE: 0 may not even exist if it's deleted
+  $scope.graphAuthor = $routeParams.user || $scope.loginObject.username || 'sample'
   $scope.loginObject.loginMessage = ""
   $scope.nodeTypes = [
     "Person",
@@ -21,7 +21,13 @@ angular.module('rtApp')
     "Event",
     "Document"
   ]
+  $scope.nodeSelected = false
+  $scope.onlyEdgeSelected = false
   $scope.inPreview = false
+  $scope.editView = 0
+  $scope.setEditView = (view) => {
+    $scope.editView = view
+  }
 
   /*
    * Helper function for creating nodes. Converts rgba values to string.
@@ -129,18 +135,28 @@ angular.module('rtApp')
         switch(record.type){
           case "Person":
             color.r = 250
-            color.g = 175
-            color.b = 175
-            break;
-          case "Tribe":
-            color.r = 225
             color.g = 225
             color.b = 125
             break;
-          default:
-            color.r = 125
+          case "Tribe":
+            color.r = 225
             color.g = 125
+            color.b = 125
+            break;
+          case "Document":
+            color.r = 250
+            color.g = 150
+            color.b = 70
+            break;
+          case "Event":
+            color.r = 70
+            color.g = 70
             color.b = 250
+            break;
+          default:
+            color.r = 225
+            color.g = 225
+            color.b = 125
             break;
         }
         var colors = {
@@ -253,6 +269,20 @@ angular.module('rtApp')
            $scope.allNodes.forEach( (node) => {
              setNodeInfo(node.id)
            })}, 1000)
+
+         $scope.network.on('click', function(properties) {
+           $scope.nodeSelected = false
+           $scope.onlyEdgeSelected = false
+
+           var nodes = properties.nodes
+           var edges = properties.edges
+           if (nodes.length > 0) {
+             $scope.nodeSelected = true
+           } else if (edges.length > 0) {
+             $scope.onlyEdgeSelected = true
+           }
+           $scope.$apply()
+         })
        },
        function onError(response) {
            console.log("Failed to retrieve relationships from database")
