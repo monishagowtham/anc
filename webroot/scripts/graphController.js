@@ -29,6 +29,7 @@ angular.module('rtApp')
     $scope.editView = view
   }
 
+
   /*
    * Helper function for creating nodes. Converts rgba values to string.
    */
