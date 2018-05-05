@@ -59,7 +59,7 @@
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                   Graphs
                 </a>
-                <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
                   <a ng-repeat="graph in loginObject.graphs" class="dropdown-item" href="/graph/{{loginObject.username}}/{{graph.id}}">{{graph.name}}</a>
                   <a class="dropdown-item text-success" href="/new">Add New Graph</a>
                 </div>
@@ -68,7 +68,7 @@
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                   Account
                 </a>
-                <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
                   <a class="dropdown-item" href="/account" ng-if="loginObject.loggedIn">My Profile</a>
                   <a class="dropdown-item" href="#" ng-if="!loginObject.loggedIn" data-toggle="modal" data-target="#loginModal" ng-click="fillLogin()">Login</a>
                   <a class="dropdown-item" href="#" ng-if="!loginObject.loggedIn" data-toggle="modal" data-target="#loginModal" ng-click="fillRegister()">Register</a>

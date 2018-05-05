@@ -70,7 +70,7 @@ module.exports = {
    */
   safeGraphId: (graphId) => {
     // Make sure type is even a string. If not, fix it.
-    if (graphId == undefined) {
+    if (graphId === undefined) {
       graphId = 0
     }
 

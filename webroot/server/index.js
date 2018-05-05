@@ -320,44 +320,47 @@ neo4j.createConnection('neo4j', '12345', function(session) {
     var username = helpers.safeUserName(req.body.u)
     validateApiKey(username, req.body.key, () => {
       var name = helpers.safeName(req.body.name)
-      var graphId = helpers.safeGraphId(req.body.name)
+      var graphId = helpers.safeGraphId(name)
       var exists = false
       var resultId = ""
       session.run("MATCH (u:User {userId: {username}})-[:ownsGraph]->(g:Graph {graphId: {graphId}}) Return g",{graphId: graphId, username: username})
       .subscribe({
         onNext: function (record) {
           exists = true
+          console.log("ERROR")
         },
         onCompleted: function () {
           if (exists) {
             res.status(400).send(JSON.stringify({result: "error", message: "Graph name too similar to existing graph"}))
             return
-          }
-          session.run(`MATCH (u:User {userId: {username}}) CREATE (u)-[:ownsGraph]-(g:Graph {graphId: {graphId}, name:{name}}) RETURN g.graphId`,{graphId: graphId, name: name, username: username})
-          .subscribe({
-            onNext: function (record) {
-              resultId = record._fields[0]
-            },
-            onCompleted: function () {
-              if (resultId != "") {
-                res.status(200).send(JSON.stringify({result: "success", graphId: resultId}))
+          } else {
+            session.run(`MATCH (u:User {userId: {username}}) CREATE (u)-[:ownsGraph]->(g:Graph {graphId: {graphId}, name:{name}}) RETURN g.graphId`,{graphId: graphId, name: name, username: username})
+            .subscribe({
+              onNext: function (record) {
+                resultId = record._fields[0]
+              },
+              onCompleted: function () {
+                if (resultId != "") {
+                  res.status(200).send(JSON.stringify({result: "success", graphId: resultId}))
+                }
+              },
+              onError: function (error) {
+                console.log(error)
+                res.status(500).send(JSON.stringify({result: "error", message: "Failed to add graph"}))
               }
-            },
-            onError: function (error) {
-              console.log(error)
-              res.send(JSON.stringify({result: "error", message: "Failed to add graph"}))
-            }
-          })
+            })
+          }
+
         },
         onError: function (error) {
           console.log(error)
-          res.send(JSON.stringify({result: "error", message: "Failed to check for conflicting graphs"}))
+          res.status(500).send(JSON.stringify({result: "error", message: "Failed to check for conflicting graphs"}))
         }
       })
     }, () => {
-      res.sendStatus(403)
+      res.status(403).send(JSON.stringify({result: "error", message: "Authentication Failed. Please log back in."}))
     }, (error) => {
-      res.send(JSON.stringify({result: "error", message: "Failed to verify API key"}))
+      res.status(500).send(JSON.stringify({result: "error", message: "Failed to verify API key"}))
     })
 
   })
