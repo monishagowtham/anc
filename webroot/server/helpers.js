@@ -74,8 +74,9 @@ module.exports = {
       graphId = 0
     }
 
-    // Remove non alphabetical letters and force lowercase
-    graphId = graphId.toString().toLowerCase().replace(/[^a-z0-9_-\s]/gi, '_').replace(/\s/gi, '-')
+    // Remove non alphabetical letters, force lowercase, and turn spaces to -
+    graphId = graphId.toString().normalize('NFD').replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase().replace(/[^a-z0-9_-\s]/gi, '_').replace(/\s/gi, '-')
 
     // Shorten string if it's long, make it Person if it's empty
     if (graphId.length > 64) {
