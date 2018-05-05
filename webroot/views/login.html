@@ -1,6 +1,6 @@
 <div class = "reg-sizing">
   <!-- mod from https://www.w3schools.com/howto/howto_css_signup_form.asp-->
-  <form style="border:1px solid #ccc">
+  <form name="loginForm" style="border:1px solid #ccc">
     <div class="container reg-sizing">
       <button ng-if="insideModal" type="button" class="close pull-right" data-dismiss="modal" aria-label="Close">
         <span aria-hidden="true">&times;</span>
@@ -19,7 +19,7 @@
       </label>
 
       <div class="clearfix reg-sizing">
-        <button type="submit" class="signupbtn reg-sizing" ng-click="loginObj.login(username,password,remember)">Log In</button>
+        <button type="submit" class="signupbtn reg-sizing" ng-click="loginForm.$valid && login(username,password,remember)">Log In</button>
         <a href="/register"><button type="button" class="cancelbtn reg-sizing">Register</button></a>
       </div>
     </div>

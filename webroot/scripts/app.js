@@ -47,7 +47,7 @@ rtApp.factory('Express', function($http) {
 
 rtApp.factory('Login', function($http,Express) {
   var object = {
-    login: (username, password, stayLoggedIn)=>{
+    login: (username, password, stayLoggedIn, callback, err)=>{
       var request = Express.requestFactory("requestApiKey")
       $http.post(
         request.build(),
@@ -70,16 +70,13 @@ rtApp.factory('Login', function($http,Express) {
           sessionStorage.setItem("key",object.key)
           sessionStorage.setItem("expires",Date.now()/1000 + 200000)
         }
+        callback()
       },
       function onError(response) {
-          object.loginMessage = "Incorrect Username or Password"
-          setTimeout(() => {
-            object.loginMessage = ""
-          },1500)
+          err()
       })
     },
     loggedIn: false,
-    loginMessage: "",
     username: undefined,
     key: undefined,
     logout: ()=>{
@@ -112,3 +109,11 @@ rtApp.factory('Login', function($http,Express) {
   }
   return object
 })
+
+rtApp.directive('rt-init', function($parse) {
+        return function(scope, element, attrs) {
+            //modify scope
+            var model = $parse(attrs.initData);
+            model(scope);
+        };
+    });

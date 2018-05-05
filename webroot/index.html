@@ -28,7 +28,7 @@
     <script src="/scripts/templateController.js"></script>
     <script src='/scripts/graphController.js'></script>
     <script src='/scripts/accountController.js'></script>
-    <script src='/scripts/registrationController.js'></script>
+    <script src='/scripts/loginController.js'></script>
     <script src='/scripts/homeController.js'></script>
 
     <!-- Link AngularJS routes -->
@@ -37,7 +37,7 @@
     <!-- Set base URL for AngularJS route html5 mode -->
     <base href="/">
   </head>
-  <body ng-controller="TemplateController">
+  <body ng-controller="TemplateController as tp">
     <div class="controller-div">
       <header>
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -67,7 +67,7 @@
                   <a class="dropdown-item" href="/account">My Profile</a>
                   <a class="dropdown-item" href="#" data-toggle="modal" data-target="#loginModal" ng-click="fillLogin()">Login</a>
                   <a class="dropdown-item" href="#" data-toggle="modal" data-target="#loginModal" ng-click="fillRegister()">Register</a>
-                  <a class="dropdown-item text-danger" ng-click="loginObj.logout()" href="#">Logout</a>
+                  <a class="dropdown-item text-danger" ng-click="loginObject.logout()" href="#">Logout</a>
                 </div>
               </li>
             </ul>
@@ -79,8 +79,8 @@
     <!-- Modal -->
     <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalTitle" aria-hidden="true">
       <div class="modal-dialog" role="document">
-        <div class="modal-content modal-corners" ng-include="'/views/login.html'" ng-if="!register"></div>
-        <div class="modal-content modal-corners" ng-include="'/views/register.html'" ng-if="register"></div>
+        <div class="modal-content modal-corners"  ng-if="!register"><div ng-include="'/views/login.html'" ng-controller="LoginController as lc" rt-init="insideModal=true"></div></div>
+        <div class="modal-content modal-corners"  ng-if="register"><div ng-include="'/views/register.html'" ng-controller="LoginController as rc" rt-init="insideModal=true"></div></div>
       </div>
     </div>
   </div>
