@@ -1,5 +1,5 @@
 // Create Angular App (Add app-wide things here)
-var rtApp = angular.module('rtApp',[])
+var rtApp = angular.module('rtApp',['ngRoute'])
 
 rtApp.factory('Express', function($http) {
   var _protocol = "http"

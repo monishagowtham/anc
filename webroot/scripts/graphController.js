@@ -4,13 +4,12 @@
  */
 
 angular.module('rtApp')
-        .controller('GraphController', ($scope,$http,Login,Express) => {
+        .controller('GraphController', function ($scope,$http,Login,Express) {
 
 
   //Check if user is logged in
   $scope.loginObject = Login
   $scope.loginObject.checkSession()
-  $scope.$watch('loginObject', function (newValue, oldValue) {$scope.$apply()})
 
   $scope.graphId = 1
   $scope.homeId = 0

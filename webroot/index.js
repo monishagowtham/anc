@@ -31,6 +31,7 @@ app.get('/scripts/:script*', (req,res) => {
       "jquery" : "node_modules/jquery/dist/jquery.min.js",
       "popper" : "node_modules/popper.js/dist/umd/popper.min.js",
       "angular" : "node_modules/angular/angular.js",
+      "angular-route" : "node_modules/angular-route/angular-route.js",
       "vis" : "node_modules/vis/dist/vis.min.js"
     }
     url = urlMap[path.basename(req.originalUrl)]

@@ -2,21 +2,40 @@
 <html ng-app="rtApp">
   <head>
     <title>Ancestry Test</title>
+    <!-- Set character set -->
+    <meta charset="utf-8">
+
+    <!-- Link 3rd-party CSS -->
     <link href="/styles/dep/vis" rel="stylesheet" type="text/css" />
     <link href="/styles/dep/bootstrap" rel="stylesheet" type="text/css" />
 
+    <!-- Link site css -->
     <link href="/styles/site.css" rel="stylesheet" type="text/css" />
     <link href="/styles/graph.css" rel="stylesheet" type="text/css" />
 
+    <!-- Link 3rd-party scripts -->
     <script src="/scripts/dep/jquery"></script>
     <script src="/scripts/dep/popper"></script>
     <script src="/scripts/dep/angular"></script>
+    <script src="/scripts/dep/angular-route"></script>
     <script src="/scripts/dep/bootstrap"></script>
     <script src="/scripts/dep/vis"></script>
 
+    <!-- Link AngularJS app -->
     <script src="/scripts/app.js"></script>
+
+    <!-- Link AngularJS controllers -->
     <script src="/scripts/navBarController.js"></script>
     <script src='/scripts/graphController.js'></script>
+    <script src='/scripts/accountController.js'></script>
+    <script src='/scripts/registrationController.js'></script>
+    <script src='/scripts/homeController.js'></script>
+
+    <!-- Link AngularJS routes -->
+    <script src='/scripts/routes.js'></script>
+
+    <!-- Set base URL for AngularJS route html5 mode -->
+    <base href="/">
   </head>
   <body>
     <div class="controller-div" ng-controller="NavBarController as components">
@@ -34,7 +53,7 @@
         </nav>
       </header>
       <!--BELOW: TEMPORARY NG-INCLUDE TO MAKE THINGS WORK UNTIL WE ADD ROUTE-->
-      <div class="main-content" ng-include="'/views/graph.html'"></div>
+      <div class="main-content" ng-view></div>
     </div>
   </body>
 </html>
