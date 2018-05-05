@@ -1,8 +1,6 @@
 // Create Angular App (Add app-wide things here)
 var rtApp = angular.module('rtApp',[])
-rtApp.factory('Login', function() {
-  return { loginFunction: (username, password)=>{}, loggedIn: false, loginMessage: "", username: "" }
-})
+
 rtApp.factory('Express', function($http) {
   var _protocol = "http"
   var _domain = "localhost"
@@ -45,4 +43,70 @@ rtApp.factory('Express', function($http) {
       return thisObj
     }
   }
+})
+
+rtApp.factory('Login', function($http,Express) {
+  var object = {
+    login: (username, password, stayLoggedIn)=>{
+      var request = Express.requestFactory("requestApiKey")
+      $http.post(
+        request.build(),
+        JSON.stringify({
+          "u": username,
+          "p": password
+        })
+      )
+      .then(function onSuccess(response) {
+        console.log("success")
+        object.key = response.data.key
+        object.loggedIn = true
+        object.username = username
+        if (stayLoggedIn) {
+          localStorage.setItem("username",username)
+          localStorage.setItem("key",object.key)
+          localStorage.setItem("expires",Date.now()/1000 + 200000)
+        } else {
+          sessionStorage.setItem("username",username)
+          sessionStorage.setItem("key",object.key)
+          sessionStorage.setItem("expires",Date.now()/1000 + 200000)
+        }
+      },
+      function onError(response) {
+          object.loginMessage = "Incorrect Username or Password"
+          setTimeout(() => {
+            object.loginMessage = ""
+          },1500)
+      })
+    },
+    loggedIn: false, loginMessage: "",
+    username: "",
+    key: "",
+    logout: ()=>{
+      object.loggedIn = false
+      object.loginMessage = ""
+      object.username = ""
+      sessionStorage.removeItem("username")
+      sessionStorage.removeItem("key")
+      sessionStorage.removeItem("expires")
+      localStorage.removeItem("username")
+      localStorage.removeItem("key")
+      localStorage.removeItem("expires")
+    },
+    checkSession: ()=>{
+      var expiration = sessionStorage.getItem("expires")
+      if (expiration != undefined && expiration > Date.now()/1000) {
+        object.username = sessionStorage.getItem("username")
+        object.key = sessionStorage.getItem("key")
+        object.loggedIn = true
+      } else {
+        expiration = localStorage.getItem("expires")
+        if (expiration != undefined && expiration > Date.now()/1000) {
+          object.username = localStorage.getItem("username")
+          object.key = localStorage.getItem("key")
+          object.loggedIn = true
+        }
+      }
+    }
+  }
+  return object
 })

@@ -67,7 +67,7 @@
           </div>
           <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
             <div class="card-body">
-              <form class="form-horizontal" action="/#">
+              <form class="form-horizontal" action="/#" onsubmit="return false">
                 <div class="form-group">
                   <div class="col-sm-10">
                     <label class="col-xs-3 control-label">Node Type:</label>
@@ -105,7 +105,7 @@
           </div>
           <div id="collapseThreeAndAHalf" class="collapse" aria-labelledby="headingThreeAndAHalf" data-parent="#accordion">
             <div class="card-body">
-              <form class="form-horizontal" action="/#">
+              <form class="form-horizontal" action="/#" onsubmit="return false">
                 <div class="form-group">
                   <label class="control-label col-sm-6">Relationship Label:</label>
                   <div class="col-sm-10">
@@ -135,9 +135,9 @@
                     </div>
                   </div>
                   <div class="col-sm-offset-2 col-sm-10">
-                    <button type="button" ng-if="!inPreview" ng-click="previewRelationship(prettyName, fromId, toId)" class="btn btn-outline-success">Show Preview</button>
-                    <button type="button" ng-if="inPreview" ng-click="generateRelationshipList()" class="btn btn-dark">Hide Preview</button>
-                    <button type="submit" ng-click="createRelationship(prettyName, fromId, toId)" class="btn btn-outline-success float-right">Add Relationship</button>
+                    <button type="button" ng-if="!inPreview" ng-click="previewRelationship(prettyName, fromId, toId)" class="btn btn-outline-success">Preview</button>
+                    <button type="button" ng-if="inPreview" ng-click="generateRelationshipList()" class="btn btn-dark">Cancel</button>
+                    <button type="submit" ng-click="createRelationship(prettyName, fromId, toId)" class="btn btn-outline-success float-right">Add</button>
                   </div>
                 </form>
               </div>

@@ -5,42 +5,24 @@
 
 angular.module('rtApp')
         .controller('GraphController', ($scope,$http,Login,Express) => {
-        
+
+
+  //Check if user is logged in
   $scope.loginObject = Login
+  $scope.loginObject.checkSession()
+  $scope.$watch('loginObject', function (newValue, oldValue) {$scope.$apply()})
+
   $scope.graphId = 1
   $scope.homeId = 0
+  $scope.graphAuthor = 'austin' //this will be in URL and indicates graph user, not logged in user
   $scope.loginObject.loginMessage = ""
   $scope.nodeTypes = [
     "Person",
-    "Document",
-    "Tribe"
+    "Tribe",
+    "Event",
+    "Document"
   ]
   $scope.inPreview = false
-  $scope.graphAuthor = 'austin' //this will be in URL and indicates graph user, not logged in user
-  //var password = 'hunter2'
-  $scope.key = ''
-  $scope.loginObject.loginFunction = function (username, password) {
-    var request = Express.requestFactory("requestApiKey")
-    $http.post(
-      request.build(),
-      $.param({
-        u: username,
-        p: password
-      })
-    )
-    .then(function mySuccess(response) {
-      console.log("success")
-      $scope.key = response.data.key
-      $scope.loginObject.loggedIn = true
-      $scope.loginObject.username = username
-    },
-    function myError(response) {
-        $scope.loginObject.loginMessage = "Incorrect Username or Password"
-        setTimeout(() => {
-          $scope.loginObject.loginMessage = ""
-        },1500)
-    })
-  }
 
   /*
    * Helper function for creating nodes. Converts rgba values to string.
@@ -96,7 +78,7 @@ angular.module('rtApp')
             method : "GET",
             url : request.build()
     })
-    .then(function mySuccess(response) {
+    .then(function onSuccess(response) {
       var html = ""
       html += `<h6>${response.data.name.toString()}</h6><br/>`
       response.data.from.forEach(function(record){
@@ -117,7 +99,7 @@ angular.module('rtApp')
       output.classList.add('node-info-box')
       $scope.nodes.update({id: id, title: html})
     },
-    function myError(response) {
+    function onError(response) {
         console.log("Failed to retrieve Node info from database")
     })
   }
@@ -135,7 +117,7 @@ angular.module('rtApp')
         method : "GET",
         url : request.build()
     })
-    .then(function mySuccess(response) {
+    .then(function onSuccess(response) {
       $scope.nodes.clear()
       $scope.allNodes = []
       response.data.forEach(function(record){
@@ -182,7 +164,7 @@ angular.module('rtApp')
       })
       $scope.generateRelationshipList()
     },
-    function myError(response) {
+    function onError(response) {
         console.log("Failed to retrieve nodes from database")
     })
    }
@@ -209,7 +191,7 @@ angular.module('rtApp')
             method : "GET",
             url : request.build()
        })
-       .then(function mySuccess(response) {
+       .then(function onSuccess(response) {
          $scope.inPreview = false
          hideAllNodes()
          $scope.edges.clear()
@@ -273,7 +255,7 @@ angular.module('rtApp')
              setNodeInfo(node.id)
            })}, 1000)
        },
-       function myError(response) {
+       function onError(response) {
            console.log("Failed to retrieve relationships from database")
        })
    }
@@ -288,10 +270,10 @@ angular.module('rtApp')
          method : "GET",
          url : request.build()
      })
-     .then(function mySuccess(response) {
+     .then(function onSuccess(response) {
        node.rels=response.data.count
      },
-     function myError(response) {
+     function onError(response) {
          console.log("Failed to retrieve number of relationships to node")
      })
    }
@@ -459,22 +441,22 @@ angular.module('rtApp')
      */
     $scope.createNode = function(name,type) {
       var request = Express.requestFactory("addNode")
-      $http({
-              method : "POST",
-              url : request.build(),
-              params : {
+      $http.post(
+              request.build(),
+              JSON.stringify({
                 "graphId": $scope.graphId,
                 "u": $scope.graphAuthor,
                 "name": name,
                 "type": type,
-                "key": $scope.key
-              }
-      })
-      .then(function mySuccess(response) {
+                "key": $scope.loginObject.key
+              })
+      )
+      .then(function onSuccess(response) {
           generateNodesList()
       },
-      function myError(response) {
+      function onError(response) {
           console.log(response)
+          $scope.loginObject.logout()
       })
     }
 
@@ -482,30 +464,31 @@ angular.module('rtApp')
      * Create Relationship (from and to are swapped and I'm not sure why but it
      * makes sense this way)
      */
-     $scope.createRelationship = function(prettyName,to,from) {
+     $scope.createRelationship = function(prettyName,from,to) {
        name = prettyName.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, i) {
           if (+match === 0) return ""
           return i == 0 ? match.toLowerCase() : match.toUpperCase()
         });
-        var request = Express.requestFactory("addNode")
-        $http({
-                method : "POST",
-                url : request.build(),
-                params : {
+        var request = Express.requestFactory("addRelationship")
+        $http.post(
+                request.build(),
+                JSON.stringify({
                   "graphId": $scope.graphId,
                   "u": $scope.graphAuthor,
                   "name": name,
-                  "key": $scope.key,
+                  "key": $scope.loginObject.key,
                   "pretty": prettyName,
                   "from": from,
                   "to": to
-                }
-        })
-        .then(function mySuccess(response) {
+                })
+        )
+        .then(function onSuccess(response) {
             $scope.generateRelationshipList()
-        },
-        function myError(response) {
             console.log(response)
+        },
+        function onError(response) {
+            console.log(response)
+            $scope.loginObject.logout()
         })
       }
 
