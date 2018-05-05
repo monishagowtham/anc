@@ -295,7 +295,6 @@ angular.module('rtApp')
        .addParameter("graphId",$scope.graphId)
        .addParameter("u",$scope.graphAuthor)
        .addParameter("id",node.id)
-       .addParameter("u",$scope.graphAuthor)
      $http({
          method : "GET",
          url : request.build()
