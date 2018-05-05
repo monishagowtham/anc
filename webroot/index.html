@@ -2,203 +2,92 @@
 <html ng-app="rtApp">
   <head>
     <title>Ancestry Test</title>
-    <link href="/node_modules/vis/dist/vis.css" rel="stylesheet" type="text/css" />
-    <link href="/node_modules/bootstrap/dist/css/bootstrap.css" rel="stylesheet" type="text/css" />
+    <!-- Set character set -->
+    <meta charset="utf-8">
 
+    <!-- Link 3rd-party CSS -->
+    <link href="/styles/dep/vis" rel="stylesheet" type="text/css" />
+    <link href="/styles/dep/bootstrap" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.12/css/all.css" integrity="sha384-G0fIWCsCzJIMAVNQPfjH08cyYaUtMwjJwqiRKxxE/rx96Uroj1BtIQ6MLJuheaO9" crossorigin="anonymous">
+
+    <!-- Link site css -->
     <link href="/styles/site.css" rel="stylesheet" type="text/css" />
-    <link href="/styles/graph.css" rel="stylesheet" type="text/css" />
 
-    <script src="/node_modules/jquery/dist/jquery.min.js"></script>
-    <script src="/node_modules/popper.js/dist/umd/popper.min.js"></script>
-    <script src="/node_modules/angular/angular.js"></script>
-    <script src="/node_modules/bootstrap/dist/js/bootstrap.min.js"></script>
-    <script src="/node_modules/vis/dist/vis.min.js"></script>
+    <!-- Link 3rd-party scripts -->
+    <script src="/scripts/dep/jquery"></script>
+    <script src="/scripts/dep/popper"></script>
+    <script src="/scripts/dep/angular"></script>
+    <script src="/scripts/dep/angular-route"></script>
+    <script src="/scripts/dep/bootstrap"></script>
+    <script src="/scripts/dep/vis"></script>
 
+    <!-- Link AngularJS app -->
     <script src="/scripts/app.js"></script>
-    <script src="/scripts/navBarController.js"></script>
+
+    <!-- Link AngularJS Factories and Services -->
+    <script src="/scripts/expressFactory.js"></script>
+    <script src="/scripts/loginFactory.js"></script>
+
+    <!-- Link AngularJS controllers -->
+    <script src="/scripts/templateController.js"></script>
     <script src='/scripts/graphController.js'></script>
+    <script src='/scripts/newGraphController.js'></script>
+    <script src='/scripts/accountController.js'></script>
+    <script src='/scripts/loginController.js'></script>
+    <script src='/scripts/homeController.js'></script>
+
+    <!-- Link AngularJS routes -->
+    <script src='/scripts/routes.js'></script>
+
+    <!-- Set base URL for AngularJS route html5 mode -->
+    <base href="/">
   </head>
-  <body>
-    <div class="controller-div" ng-controller="NavBarController as components">
-    <header>
-    <nav class="navbar navbar-dark fixed-top bg-dark top-bar">
-      <a class="navbar-brand" href="/#">Relationship Tree</a>
-        <form class="form-inline mt-2 mt-md-0 login-form" ng-if="!loginObject.loggedIn"><span class="red-text">{{loginObject.loginMessage}}</span>
-          <input class="form-control mr-sm-2" type="username" ng-model="username" placeholder="Username" aria-label="username">
-          <input class="form-control mr-sm-2" type="password" ng-model="password" placeholder="Password" aria-label="Password">
-          <button class="btn btn-outline-success my-2 my-sm-0" ng-click="login(username, password)" type="submit">Login</button>
-        </form>
-    </nav>
-  </header>
-      <div class="main-content">
-        <div id="graph-controller-scope" ng-controller="GraphController as graph">
-          <div id="graph-filter">
-
-            <div id="accordion">
-
-              <div class="card" id="top-card">
-                <div class="card-header" id="headingOne">
-                  <h5 class="mb-0">
-                    <button class="btn btn-link collapse-title" data-toggle="collapse" data-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-                      Hide/Show Relationships
-                    </button>
-                  </h5>
+  <body ng-controller="TemplateController as tp">
+    <div class="controller-div">
+      <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+          <a class="navbar-brand" href="#">RelationshipTree</a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNavDropdown">
+            <ul class="navbar-nav ml-auto">
+              <li class="nav-item active">
+                <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+              </li>
+              <li ng-if="loginObject.loggedIn" class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  Graphs
+                </a>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
+                  <a ng-repeat="graph in loginObject.graphs" class="dropdown-item" href="/graph/{{loginObject.username}}/{{graph.id}}">{{graph.name}}</a>
+                  <a class="dropdown-item text-success" href="/new">Add New Graph</a>
                 </div>
-                <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
-                  <div class="card-body">
-                    <div class="sub-filter" id="edge-filter">
-                      <input id="filter-search" class="form-control" ng-model="relSearch" placeholder="Filter"/><br />
-                      <div class="btn-group-toggle" data-toggle="buttons">
-                        <div class="pre-scrollable">
-                            <a data-ng-repeat="relationship in filterRelationships | filter: relSearch" on-finish-render="finished" href="javascript://void()" ng-click='hideType(relationship)' class="list-group-item" data-toggle="tooltip">
-                                <h4 ng-if="!getFirstEdgeWithLabel(relationship).hidden" class="relationship-name">{{relationship}}<span class="badge badge-dark relationship-count float-right">{{getNumberOfEdgesWithLabel(relationship)}}</span></h4>
-                                <h4 ng-if="getFirstEdgeWithLabel(relationship).hidden" class="relationship-name negated">{{relationship}}<span class="badge badge-secondary negated relationship-count float-right">{{getNumberOfEdgesWithLabel(relationship)}}</span></h4>
-                                <input id="checkbox{{relationship}}" type="checkbox" style="display:none" ng-checked="getFirstEdgeWithLabel(relationship).hidden">
-                            </a>
-                            <br />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+              </li>
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  Account
+                </a>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdownMenuLink">
+                  <a class="dropdown-item" href="/account" ng-if="loginObject.loggedIn">My Profile</a>
+                  <a class="dropdown-item" href="#" ng-if="!loginObject.loggedIn" data-toggle="modal" data-target="#loginModal" ng-click="fillLogin()">Login</a>
+                  <a class="dropdown-item" href="#" ng-if="!loginObject.loggedIn" data-toggle="modal" data-target="#loginModal" ng-click="fillRegister()">Register</a>
+                  <a class="dropdown-item text-danger" ng-if="loginObject.loggedIn" ng-click="loginObject.logout()" href="#">Logout</a>
                 </div>
-              </div>
-
-              <div class="card">
-                <div class="card-header" id="headingTwo">
-                  <h5 class="mb-0">
-                    <button class="btn btn-link collapse-title collapsed" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                      Jump To
-                    </button>
-                  </h5>
-                </div>
-                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
-                  <div class="card-body">
-                    <div class="sub-filter" id="edge-filter">
-                      <input id="node-search" class="form-control" ng-model="nodeSearch" placeholder="Filter"/><br />
-                      <div class="btn-group-toggle" data-toggle="buttons">
-                        <div class="pre-scrollable">
-                            <a data-ng-repeat="node in allNodes | filter: nodeSearch" on-finish-render="finished" href="javascript://void()" ng-click='moveTo(node.id)' class="list-group-item" data-toggle="tooltip">
-                                <h4 ng-if="node.id == homeId" class="relationship-name">{{node.name}}<span class="badge badge-dark relationship-count float-right">{{node.rels}}</span></h4>
-                                <h4 ng-if="node.id != homeId" class="relationship-name unchosen">{{node.name}}<span class="badge badge-secondary relationship-count float-right">{{node.rels}}</span></h4>
-                                <input id="checkbox{{relationship}}" type="checkbox" style="display:none" ng-checked="getFirstEdgeWithLabel(relationship).hidden">
-                            </a>
-                            <br />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-                <div class="card" ng-if="loginObject.loggedIn && graphAuthor === loginObject.username">
-                  <div class="card-header" id="headingThree">
-                    <h5 class="mb-0">
-                      <button class="btn btn-link collapse-title collapsed" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                        Create Node
-                      </button>
-                    </h5>
-                  </div>
-                  <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordion">
-                    <div class="card-body">
-                      <form class="form-horizontal" action="/#">
-                        <div class="form-group">
-                          <div class="col-sm-10">
-                            <label class="col-xs-3 control-label">Node Type:</label>
-                              <div class="col-xs-5 selectContainer">
-                                <select class="form-control" ng-model="newNodeType">
-                                    <option value="" disabled="disabled">Choose a Type</option>
-                                    <option ng-repeat="nodeType in nodeTypes" value="{{nodeType}}">{{nodeType}}</option>
-                                </select>
-                              </div>
-                          </div>
-                        </div>
-                        <div class="form-group">
-                          <label class="control-label col-sm-6" for="pwd">Name:</label>
-                          <div class="col-sm-10">
-                            <input type="text" class="form-control" ng-model="newNodeName" placeholder="Name">
-                          </div>
-                        </div>
-                        <div class="form-group">
-                          <div class="col-sm-offset-2 col-sm-10">
-                            <button type="submit" ng-click="createNode(newNodeName,newNodeType)" class="btn btn-outline-success">Add Node</button>
-                          </div>
-                        </div>
-                      </form>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="card" ng-if="loginObject.loggedIn && graphAuthor === loginObject.username">
-                  <div class="card-header" id="headingThreeAndAHalf">
-                    <h5 class="mb-0">
-                      <button class="btn btn-link collapse-title collapsed" data-toggle="collapse" data-target="#collapseThreeAndAHalf" aria-expanded="false" aria-controls="collapseThreeAndAHalf">
-                        Create Relationship
-                      </button>
-                    </h5>
-                  </div>
-                  <div id="collapseThreeAndAHalf" class="collapse" aria-labelledby="headingThreeAndAHalf" data-parent="#accordion">
-                    <div class="card-body">
-                      <form class="form-horizontal" action="/#">
-                        <div class="form-group">
-                          <label class="control-label col-sm-6">Relationship Label:</label>
-                          <div class="col-sm-10">
-                            <input type="text" class="form-control" ng-model="prettyName" placeholder="Relationship Label">
-                          </div>
-                        </div>
-                        <div class="form-group">
-                          <div class="col-sm-10">
-                            <label class="col-xs-3 control-label">From:</label>
-                              <div class="col-xs-5 selectContainer">
-                                  <select class="form-control" ng-model="fromId">
-                                      <option value="" disabled="disabled">Choose a Person</option>
-                                      <option ng-repeat="node in allNodes" value="{{node.id}}">{{node.name}}</option>
-                                  </select>
-                              </div>
-                          </div>
-                        </div>
-                        <div class="form-group">
-                          <div class="col-sm-10">
-                            <label class="col-xs-3 control-label">To:</label>
-                              <div class="col-xs-5 selectContainer">
-                                  <select class="form-control" ng-model="toId">
-                                      <option value="" disabled="disabled">Choose a Type</option>
-                                      <option ng-repeat="node in allNodes" value="{{node.id}}">{{node.name}}</option>
-                                  </select>
-                              </div>
-                            </div>
-                          </div>
-                          <div class="col-sm-offset-2 col-sm-10">
-                            <button type="button" ng-if="!inPreview" ng-click="previewRelationship(prettyName, fromId, toId)" class="btn btn-outline-success">Show Preview</button>
-                            <button type="button" ng-if="inPreview" ng-click="generateRelationshipList()" class="btn btn-dark">Hide Preview</button>
-                            <button type="submit" ng-click="createRelationship(prettyName, fromId, toId)" class="btn btn-outline-success float-right">Add Relationship</button>
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
-
-                <div class="card" id="bottom-card">
-                  <div class="card-header" id="headingFour">
-                    <h5 class="mb-0">
-                      <button class="btn btn-link collapse-title collapsed" data-toggle="collapse" data-target="#collapseFour" aria-expanded="true" aria-controls="collapseFour">
-                        Graph Options
-                      </button>
-                    </h5>
-                  </div>
-
-                  <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordion">
-                    <div class="card-body">
-                      <div class="filter-form-item"><button class="btn btn-dark" ng-click="jiggleToggle()">Toggle Physics</button></div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-          <div id="graph"></div>
+              </li>
+            </ul>
           </div>
-        </div>
+        </nav>
+      </header>
+      <div class="main-content" ng-view></div>
+    </div>
+    <!-- Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalTitle" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content modal-corners"  ng-if="!register"><div ng-include="'/views/login.html'" ng-controller="LoginController as lc" rt-init="insideModal=()"></div></div>
+        <div class="modal-content modal-corners"  ng-if="register"><div ng-include="'/views/register.html'" ng-controller="LoginController as rc" rt-init="insideModal=()"></div></div>
       </div>
     </div>
+  </div>
   </body>
 </html>

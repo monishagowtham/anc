@@ -1,0 +1,41 @@
+<div class = "reg-sizing">
+  <!-- mod from https://www.w3schools.com/howto/howto_css_signup_form.asp-->
+  <form name="newGraphForm" class="needs-validation">
+    <div class="container reg-sizing">
+      <button ng-if="insideModal" type="button" class="close pull-right" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <h1>New Graph</h1>
+      <hr>
+
+      <label class="reg-sizing" for="displayname"><b>Graph Name</b></label>
+      <input class="reg-sizing" type="text" placeholder="Graph Name" name="graphname" ng-model="graphname" required>
+      <label ng-if="failureMessage != ''" class="reg-sizing text-danger">{{failureMessage}}</label>
+      </label>
+      <div class="clearfix reg-sizing">
+        <button type="submit" class="signupbtn reg-sizing" ng-click="newGraphForm.$valid && createGraph(graphname)">Create</button>
+        <a href="/"><button type="button" class="cancelbtn reg-sizing">Cancel</button></a>
+      </div>
+    </div>
+  </form>
+
+
+  <!-- Modal -->
+  <div class="modal fade" id="privacyModal" tabindex="-1" role="dialog" aria-labelledby="privacyModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="privacyModalTitle">Privacy Terms</h5>
+          <button type="button" class="close pull-right" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body" ng-include="'/views/privacy.html'">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary w-100" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

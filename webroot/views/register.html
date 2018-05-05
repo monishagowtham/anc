@@ -1,0 +1,59 @@
+<div class = "reg-sizing">
+  <!-- mod from https://www.w3schools.com/howto/howto_css_signup_form.asp-->
+  <form name="registerForm" class="needs-validation">
+    <div class="container reg-sizing">
+      <button ng-if="insideModal" type="button" class="close pull-right" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <h1>Register</h1>
+      <hr>
+
+      <label class="reg-sizing" for="displayname"><b>Display Name</b></label>
+      <input class="reg-sizing" type="text" placeholder="Name" name="displayname" ng-model="displayname" required>
+
+      <label class="reg-sizing" for="username"><b>Username</b></label>
+      <input class="reg-sizing" type="text" placeholder="Username" name="username" ng-model="username" required>
+
+      <label class="reg-sizing" for="psw"><b>Password</b></label>
+      <input class="reg-sizing" type="password" placeholder="Password" name="psw" ng-model="password" required>
+
+      <label class="reg-sizing" for="psw-repeat"><b>Repeat Password</b></label>
+      <input class="reg-sizing" type="password" placeholder="Confirm Password" ng-model="repeat" name="psw-repeat" required>
+      <label class="reg-sizing text-danger" ng-if="showMismatch">Passwords do not match</label></br>
+
+      <label>
+        <input class="reg-sizing" type="checkbox" checked="checked" name="remember" ng-model="remember" style="margin-bottom:15px"> Keep me logged in
+      </label>
+
+      <p ng-if="!insideModal">By creating an account you agree to our <a href='#' data-toggle="modal" data-target="#privacyModal" class="text-primary">Terms & Privacy</a>.</p>
+      <div ng-if="insideModal">
+        <p>By creating an account you agree to our <a href='#' data-toggle="collapse" data-target="#privacyCollapse" class="text-primary">Terms & Privacy</a>.</p>
+        <div class="pre-scrollable collapse" id="privacyCollapse"><div class="modal-body" ng-include="'/views/privacy.html'"></div></div>
+      </div>
+      <div class="clearfix reg-sizing">
+        <button type="submit" class="signupbtn reg-sizing" ng-click="registerForm.$valid && validate(password,repeat) && register(username, password, remember, displayname)">Register</button>
+        <a href="/"><button type="button" class="cancelbtn reg-sizing">Cancel</button></a>
+      </div>
+    </div>
+  </form>
+
+
+  <!-- Modal -->
+  <div class="modal fade" id="privacyModal" tabindex="-1" role="dialog" aria-labelledby="privacyModalTitle" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="privacyModalTitle">Privacy Terms</h5>
+          <button type="button" class="close pull-right" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body" ng-include="'/views/privacy.html'">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary w-100" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,3 +1,3 @@
 angular.module('rtApp')
-        .controller('HomeController',($scope,$http,$routeParams) => {
+        .controller('HomeController', function ($scope,$http,$routeParams) {
     })

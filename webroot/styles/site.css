@@ -22,6 +22,14 @@ a {
   padding-right: 5px;
 }
 
+.registration-label {
+  font-weight: bold;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 10px;
+  white-space: pre;
+}
+
 .main-content {
   width: 100vw;
   position: relative;
@@ -56,6 +64,7 @@ a {
 
 .top-bar {
   box-shadow: 0 1px 2px;
+  position: relative;
 }
 
 .collapse-title {
@@ -141,6 +150,106 @@ a {
   width: auto;
 }
 
+.deborder {
+  border: none;
+}
+
 .collapse.in.height {
   height: auto;
+}
+
+/* from https://www.w3schools.com/howto/howto_css_signup_form.asp */
+.reg-sizing {box-sizing: border-box}
+
+/* Full-width input fields */
+  input[type=text].reg-sizing, input[type=password].reg-sizing {
+  width: 100%;
+  padding: 15px;
+  margin: 5px 0 22px 0;
+  display: inline-block;
+  border: none;
+  background: #f1f1f1;
+}
+
+input[type=text].reg-sizing:focus, input[type=password].reg-sizing:focus {
+  background-color: #ddd;
+  outline: none;
+}
+
+hr.reg-sizing {
+  border: 1px solid #f1f1f1;
+  margin-bottom: 25px;
+}
+
+/* Set a style for all buttons */
+button.reg-sizing {
+  background-color: #4CAF50;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  opacity: 0.9;
+}
+
+button.reg-sizing:hover {
+  opacity:1;
+}
+
+/* Extra styles for the cancel button */
+.cancelbtn.reg-sizing {
+  padding: 14px 20px;
+  background-color: #f44336;
+}
+
+/* Float cancel and signup buttons and add an equal width */
+.cancelbtn.reg-sizing, .signupbtn.reg-sizing {
+  float: left;
+  width: 50%;
+}
+
+/* Add padding to container elements */
+.container.reg-sizing {
+  padding: 16px;
+}
+
+/* Clear floats */
+.clearfix.reg-sizing::after {
+  content: "";
+  clear: both;
+  display: table;
+}
+
+/* Change styles for cancel button and signup button on extra small screens */
+@media screen and (max-width: 300px) {
+  .cancelbtn.reg-sizing, .signupbtn.reg-sizing {
+    width: 100%;
+  }
+}
+
+.modal-corners {
+  border-radius: 0.3rem;
+  border: none;
+  overflow: hidden;
+}
+
+#graph {
+  z-index: 1;
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  display: border-box;
+  border: 1px solid lightgray;
+}
+#nodeId {
+  width: 20px;
+}
+#accordion {
+  z-index: 50;
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 30vw;
+  float: right;
 }

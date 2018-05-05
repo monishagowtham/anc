@@ -4,41 +4,31 @@
  */
 
 angular.module('rtApp')
-        .controller('GraphController', ($scope,$http,Login) => {
+        .controller('GraphController', function ($scope,$http,$routeParams,Login,Express) {
 
-  // settings (set these better later)
+
+  //Check if user is logged in
   $scope.loginObject = Login
-  $scope.graphId = 1
-  $scope.homeId = 0
+  $scope.loginObject.checkSession()
+
+  $scope.graphId = $routeParams.graph || 0
+  $scope.homeId = $routeParams.node || 0 // should do some get request to check what the default node should be. NOTE: 0 may not even exist if it's deleted
+  $scope.graphAuthor = $routeParams.user || $scope.loginObject.username || 'sample'
   $scope.loginObject.loginMessage = ""
   $scope.nodeTypes = [
     "Person",
-    "Document",
-    "Tribe"
+    "Tribe",
+    "Event",
+    "Document"
   ]
+  $scope.nodeSelected = false
+  $scope.onlyEdgeSelected = false
   $scope.inPreview = false
-  $scope.graphAuthor = 'austin' //this will be in URL and indicates graph user, not logged in user
-  //var password = 'hunter2'
-  $scope.key = ''
-  $scope.loginObject.loginFunction = function (username, password) {
-    $http({
-            method : "GET",
-            url : `http://localhost:8005/api/requestApiKey?u=${username}&p=${password}`
-    })
-    .then(function mySuccess(response) {
-      console.log("success")
-      $scope.key = response.data.key
-      $scope.loginObject.loggedIn = true
-      $scope.loginObject.username = username
-    },
-    function myError(response) {
-        console.log("Incorrect Username or Password")
-        $scope.loginObject.loginMessage = "Incorrect Username or Password"
-        setTimeout(() => {
-          $scope.loginObject.loginMessage = ""
-        },1500)
-    })
+  $scope.editView = 0
+  $scope.setEditView = (view) => {
+    $scope.editView = view
   }
+
 
   /*
    * Helper function for creating nodes. Converts rgba values to string.
@@ -86,11 +76,15 @@ angular.module('rtApp')
 
   /* Function to get node info */
   function setNodeInfo (id) {
+    var request = Express.requestFactory('relationshipsByNode')
+      .addParameter('graphId',$scope.graphId)
+      .addParameter('u',$scope.graphAuthor)
+      .addParameter('id',id)
     $http({
             method : "GET",
-            url : `http://localhost:8005/api/relationshipsByNode?id=${id}&graphId=${$scope.graphId}&u=${$scope.graphAuthor}`
+            url : request.build()
     })
-    .then(function mySuccess(response) {
+    .then(function onSuccess(response) {
       var html = ""
       html += `<h6>${response.data.name.toString()}</h6><br/>`
       response.data.from.forEach(function(record){
@@ -111,7 +105,7 @@ angular.module('rtApp')
       output.classList.add('node-info-box')
       $scope.nodes.update({id: id, title: html})
     },
-    function myError(response) {
+    function onError(response) {
         console.log("Failed to retrieve Node info from database")
     })
   }
@@ -121,82 +115,99 @@ angular.module('rtApp')
    * Get all nodes for this graph from the Express API and add them to
    * $scope.nodes to be used in the graph
    */
-   function generateNodesList() {
-      $http({
-          method : "GET",
-          url : `http://localhost:8005/api/graphNodes?graphId=${$scope.graphId}&u=${$scope.graphAuthor}`
-      })
-      .then(function mySuccess(response) {
-        $scope.nodes.clear()
-        $scope.allNodes = []
-        response.data.forEach(function(record){
-          var color = {
-            r: 0,
-            g: 0,
-            b: 0,
-            a: 1
+  function generateNodesList() {
+    var request = Express.requestFactory('graphNodes')
+      .addParameter("graphId",$scope.graphId)
+      .addParameter("u",$scope.graphAuthor)
+    $http({
+        method : "GET",
+        url : request.build()
+    })
+    .then(function onSuccess(response) {
+      $scope.nodes.clear()
+      $scope.allNodes = []
+      response.data.forEach(function(record){
+        var color = {
+          r: 0,
+          g: 0,
+          b: 0,
+          a: 1
+        }
+        switch(record.type){
+          case "Person":
+            color.r = 250
+            color.g = 225
+            color.b = 125
+            break;
+          case "Tribe":
+            color.r = 225
+            color.g = 125
+            color.b = 125
+            break;
+          case "Document":
+            color.r = 250
+            color.g = 150
+            color.b = 70
+            break;
+          case "Event":
+            color.r = 170
+            color.g = 200
+            color.b = 255
+            break;
+          default:
+            color.r = 225
+            color.g = 225
+            color.b = 125
+            break;
+        }
+        var colors = {
+          background: rgba(color.r,color.g,color.b,color.a),
+          border: rgba(color.r * .75,color.g * .75,color.b * .75,color.a),
+          highlight: {
+            background: rgba(color.r * .75,color.g * .75,color.b * .75,color.a),
+            border: rgba(color.r * .5625,color.g * .5625,color.b * .5625,color.a)
           }
-          switch(record.type){
-            case "Person":
-              color.r = 250
-              color.g = 175
-              color.b = 175
-              break;
-            case "Tribe":
-              color.r = 225
-              color.g = 225
-              color.b = 125
-              break;
-            default:
-              color.r = 125
-              color.g = 125
-              color.b = 250
-              break;
-          }
-          var colors = {
-            background: rgba(color.r,color.g,color.b,color.a),
-            border: rgba(color.r * .75,color.g * .75,color.b * .75,color.a),
-            highlight: {
-              background: rgba(color.r * .75,color.g * .75,color.b * .75,color.a),
-              border: rgba(color.r * .5625,color.g * .5625,color.b * .5625,color.a)
-            }
-          }
-          if ($scope.nodes.get(record.properties.visId) == undefined){
-            $scope.nodes.add([{id: record.properties.visId,
-            label: record.properties.name, color: colors, title: "Error loading info", hidden: true}])
+        }
+        if ($scope.nodes.get(record.properties.visId) == undefined){
+          $scope.nodes.add([{id: record.properties.visId,
+          label: record.properties.name, color: colors, title: "Error loading info", hidden: true}])
 
-            var localNode = {name: record.properties.name, id: record.properties.visId, rels: 0}
-            $scope.allNodes.push(localNode)
-            getNumberRelationships(localNode)
-          }
+          var localNode = {name: record.properties.name, id: record.properties.visId, rels: 0}
+          $scope.allNodes.push(localNode)
+          getNumberRelationships(localNode)
+        }
 
-        })
-        $scope.generateRelationshipList()
-      },
-      function myError(response) {
-          console.log("Failed to retrieve nodes from database")
       })
+      $scope.generateRelationshipList()
+    },
+    function onError(response) {
+        console.log("Failed to retrieve nodes from database")
+    })
    }
 
    /*
     * reset all nodes to be hidden
     */
-    function hideAllNodes() {
-      $scope.allNodes.forEach((node) => {
-        $scope.nodes.update({id: node.id, hidden: true})
-      })
-    }
+  function hideAllNodes() {
+    $scope.allNodes.forEach((node) => {
+      $scope.nodes.update({id: node.id, hidden: true})
+    })
+  }
 
   /*
    * Get all relationships for this graph from the Express API and add them to
    * $scope.relationships to be used in graph
    */
-   $scope.generateRelationshipList = function() {
+  $scope.generateRelationshipList = function() {
+     var request = Express.requestFactory("graphAroundNode")
+       .addParameter("graphId",$scope.graphId)
+       .addParameter("u",$scope.graphAuthor)
+       .addParameter("id",$scope.homeId)
      $http({
             method : "GET",
-            url : `http://localhost:8005/api/graphAroundNode?id=${$scope.homeId}&graphId=${$scope.graphId}&u=${$scope.graphAuthor}`
+            url : request.build()
        })
-       .then(function mySuccess(response) {
+       .then(function onSuccess(response) {
          $scope.inPreview = false
          hideAllNodes()
          $scope.edges.clear()
@@ -259,21 +270,39 @@ angular.module('rtApp')
            $scope.allNodes.forEach( (node) => {
              setNodeInfo(node.id)
            })}, 1000)
+
+         $scope.network.on('click', function(properties) {
+           $scope.nodeSelected = false
+           $scope.onlyEdgeSelected = false
+
+           var nodes = properties.nodes
+           var edges = properties.edges
+           if (nodes.length > 0) {
+             $scope.nodeSelected = true
+           } else if (edges.length > 0) {
+             $scope.onlyEdgeSelected = true
+           }
+           $scope.$apply()
+         })
        },
-       function myError(response) {
+       function onError(response) {
            console.log("Failed to retrieve relationships from database")
        })
    }
 
    function getNumberRelationships(node) {
+     var request = Express.requestFactory("numberRelationships")
+       .addParameter("graphId",$scope.graphId)
+       .addParameter("u",$scope.graphAuthor)
+       .addParameter("id",node.id)
      $http({
          method : "GET",
-         url : `http://localhost:8005/api/numberRelationships?graphId=${$scope.graphId}&id=${node.id}&u=${$scope.graphAuthor}`
+         url : request.build()
      })
-     .then(function mySuccess(response) {
+     .then(function onSuccess(response) {
        node.rels=response.data.count
      },
-     function myError(response) {
+     function onError(response) {
          console.log("Failed to retrieve number of relationships to node")
      })
    }
@@ -439,16 +468,24 @@ angular.module('rtApp')
     /*
      * Create Node
      */
-     $scope.createNode = function(name,type) {
-      $http({
-              method : "POST",
-              url : `http://localhost:8005/api/addNode?graphId=${$scope.graphId}&name=${name}&type=${type}&u=${$scope.graphAuthor}&key=${$scope.key}`
-      })
-      .then(function mySuccess(response) {
+    $scope.createNode = function(name,type) {
+      var request = Express.requestFactory("addNode")
+      $http.post(
+              request.build(),
+              JSON.stringify({
+                "graphId": $scope.graphId,
+                "u": $scope.graphAuthor,
+                "name": name,
+                "type": type,
+                "key": $scope.loginObject.key
+              })
+      )
+      .then(function onSuccess(response) {
           generateNodesList()
       },
-      function myError(response) {
+      function onError(response) {
           console.log(response)
+          $scope.loginObject.logout()
       })
     }
 
@@ -456,22 +493,33 @@ angular.module('rtApp')
      * Create Relationship (from and to are swapped and I'm not sure why but it
      * makes sense this way)
      */
-     $scope.createRelationship = function(prettyName,to,from) {
+     $scope.createRelationship = function(prettyName,from,to) {
        name = prettyName.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, i) {
           if (+match === 0) return ""
           return i == 0 ? match.toLowerCase() : match.toUpperCase()
         });
-      $http({
-              method : "POST",
-              url : `http://localhost:8005/api/addRelationship?graphId=${$scope.graphId}&name=${name}&pretty=${prettyName}&from=${from}&to=${to}&u=${$scope.graphAuthor}&key=${$scope.key}`
-      })
-      .then(function mySuccess(response) {
-          $scope.generateRelationshipList()
-      },
-      function myError(response) {
-          console.log(response)
-      })
-    }
+        var request = Express.requestFactory("addRelationship")
+        $http.post(
+                request.build(),
+                JSON.stringify({
+                  "graphId": $scope.graphId,
+                  "u": $scope.graphAuthor,
+                  "name": name,
+                  "key": $scope.loginObject.key,
+                  "pretty": prettyName,
+                  "from": from,
+                  "to": to
+                })
+        )
+        .then(function onSuccess(response) {
+            $scope.generateRelationshipList()
+            console.log(response)
+        },
+        function onError(response) {
+            console.log(response)
+            $scope.loginObject.logout()
+        })
+      }
 
     /*
      * Preview Relationship Locally (from and to are swapped and I'm not sure why

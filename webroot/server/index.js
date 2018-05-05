@@ -4,107 +4,21 @@ const bodyParser = require('body-parser')
 const neo4j = require('./neo4j')
 const bcrypt = require('bcrypt')
 const uuid = require('uuid/v4')
-
-const PORT = process.env.PORT || 8005
+const helpers = require('./helpers')
 
 /****************************************************************************
 **** API CALLS **************************************************************
 ****************************************************************************/
 
 neo4j.createConnection('neo4j', '12345', function(session) {
-  app.use(bodyParser.urlencoded({ extended: false }))
-  app.use(bodyParser.json())
-  app.use((req, res, next) => {
-   res.header("Access-Control-Allow-Origin", "*");
-   res.header("Access-Control-Allow-Headers",
+    app.use(bodyParser.urlencoded({ extended: false }))
+    app.use(bodyParser.json())
+    app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers",
               "Origin, X-Requested-With, Content-Type, Accept");
-   next();
+    next();
  })
-
-
- /****************************************************************************
-  **** HELPER FUNCTIONS ******************************************************
-  ****************************************************************************/
-
- /*
-  * Forces type to match format used in database
-  */
- function safeType(type) {
-   // Make sure type is even a string. If not, return "Person".
-   if (type == undefined || !(typeof type === "string" || type instanceof String)) {
-     return "Person"
-   }
-
-   // Remove non alphabetical letters and force lowercase
-   type = type.toLowerCase().replace(/[^a-z]/gi, '')
-
-   // Capitalize string
-   type = type.charAt(0).toUpperCase() + type.slice(1)
-
-   // Shorten string if it's long, make it Person if it's empty
-   if (type.length > 10) {
-     type = type.slice(0,10)
-   } else if (type.length == 0) {
-     type = "Person"
-   }
-   return type
- }
-
- /*
-  * Forces name to match format safe for database
-  */
- function safeName(name) {
-   // Make sure type is even a string. If not, return "Person".
-   if (name == undefined || !(typeof name === "string" || name instanceof String)) {
-     return "Unnamed"
-   }
-
-   // Remove non alphabetical letters and force lowercase
-   name = name.replace(/[^a-zA-Z\s]/gi, '')
-
-   // Shorten string if it's long, make it Person if it's empty
-   if (name.length > 100) {
-     name = name.slice(0,100)
-   } else if (name.length == 0) {
-     name = "Unnamed"
-   }
-   return name
- }
-
- /*
-  * Forces username to match format safe for database
-  */
- function safeUserName(username) {
-   // Make sure type is even a string. If not, return "Person".
-   if (username == undefined || !(typeof username === "string" || username instanceof String)) {
-     return "INVALID USERNAME"
-   }
-
-   // Remove non alphabetical letters and force lowercase
-   username = username.toLowerCase().replace(/[^a-z]/gi, '')
-
-   // Shorten string if it's long, make it Person if it's empty
-   if (username.length > 64) {
-     username = username.slice(0,64)
-   } else if (username.length == 0) {
-     username = "INVALID USERNAME"
-   }
-   return username
- }
-
- /*
-  * Forces id to be an integer
-  */
- function safeId(id) {
-   // If it's not a number, set id to 0
-   if (id == undefined || isNaN(id)) {
-     id = 0
-   } else if (!Number.isInteger(id)) {
-     // if it's not an integer, force it to be one
-     id = Math.round(id)
-   }
-   return id
- }
 
  /*
   * Check api key
@@ -133,9 +47,39 @@ neo4j.createConnection('neo4j', '12345', function(session) {
      })
  }
 
+ app.get('/api/config', (req, res) => {
+   res.set('Content-Type', 'application/JSON')
+   res.send(JSON.stringify({
+     protocol: process.env.RTREE_PROTOCOL || "http",
+     domain: process.env.RTREE_DOMAIN || "localhost",
+     port:process.env.RTREE_PORT || 8000
+   }))
+ })
+
+ app.get('/api/status', (req, res) => {
+   res.set('Content-Type', 'application/JSON')
+   session.run("MATCH (n) RETURN count(n)")
+    .subscribe({
+      onNext: () => {},
+      onCompleted: () => {
+        res.send(JSON.stringify({
+          website: "online",
+          database: "online"
+        }))
+      },
+      onError: () => {
+        res.send(JSON.stringify({
+          website: "online",
+          database: "offline"
+        }))
+      }
+    })
+
+ })
+
   app.get('/api/graphNodes', function (req, res) {
-    var username = safeUserName(req.query.u)
-    var graphId = safeId(req.query.graphId)
+    var username = helpers.safeUserName(req.query.u)
+    var graphId = helpers.safeGraphId(req.query.graphId)
     var records = []
     session.run("MATCH (u:User {userId: {username}})-[:ownsGraph]->(g:Graph {graphId: {graphId} })-[:contains]->(n) RETURN distinct n LIMIT 10000",{graphId: graphId, username: username})
     .subscribe({
@@ -159,12 +103,12 @@ neo4j.createConnection('neo4j', '12345', function(session) {
   })
 
    app.get('/api/numberRelationships', function (req, res) {
-     var username = safeUserName(req.query.u)
+     var username = helpers.safeUserName(req.query.u)
      var records = {count: 0}
      var parameters = {
        username: username,
-       graphId: safeId(req.query.graphId),
-       id: safeId(req.query.id)
+       graphId: helpers.safeGraphId(req.query.graphId),
+       id: helpers.safeId(req.query.id)
      }
      session.run('MATCH (u:User {userId: {username}})-[:ownsGraph]->(g:Graph {graphId: {graphId}})-[:contains]->({visId: {id}})-[r]-(b) WHERE NOT b:Graph RETURN count(r) as count', parameters)
      .subscribe({
@@ -181,10 +125,10 @@ neo4j.createConnection('neo4j', '12345', function(session) {
    })
 
   app.get('/api/relationshipsByNode', function (req, res) {
-    var username = safeUserName(req.query.u)
+    var username = helpers.safeUserName(req.query.u)
     var parameters = {
-      graphId: safeId(req.query.graphId),
-      visId: safeId(req.query.id),
+      graphId: helpers.safeGraphId(req.query.graphId),
+      visId: helpers.safeId(req.query.id),
       username: username
     }
     var fromRecords = []
@@ -241,10 +185,10 @@ neo4j.createConnection('neo4j', '12345', function(session) {
   })
 
   app.get('/api/graphAroundNode', function (req,res) {
-    var username = safeUserName(req.query.u)
+    var username = helpers.safeUserName(req.query.u)
     var params = {
-      id: safeId(req.query.id),
-      graphId: safeId(req.query.graphId),
+      id: helpers.safeId(req.query.id),
+      graphId: helpers.safeGraphId(req.query.graphId),
       username: username
 
     }
@@ -271,9 +215,35 @@ neo4j.createConnection('neo4j', '12345', function(session) {
     })
   })
 
-  app.get('/api/requestApiKey', function (req,res) {
+  app.get('/api/listGraphs', function (req,res) {
+    var username = helpers.safeUserName(req.query.u)
     var params = {
-      user: req.query.u,
+      username: username
+    }
+    var records = []
+    session.run(`MATCH (u:User {userId: {username}})-[:ownsGraph]->(g:Graph) RETURN g`, params)
+    .subscribe({
+      onNext: function (record) {
+        var graph = {
+          id: record._fields[0].properties.graphId,
+          name: record._fields[0].properties.name
+        }
+        records.push(graph)
+      },
+      onCompleted: function () {
+        //session.close()
+        res.send(JSON.stringify(records))
+      },
+      onError: function (error) {
+        console.log(error)
+        res.send(JSON.stringify({result: "error", message: "Database failed to respond to request"}))
+      }
+    })
+  })
+
+  app.post('/api/requestApiKey', function (req,res) {
+    var params = {
+      user: req.body.u,
       key: uuid(),
       stamp: Math.floor(new Date() / 1000)
     }
@@ -285,7 +255,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
     session.run('MATCH (u:User {userId: {user}})-[:password]->(p) RETURN p.pwd',params)
     .subscribe({
       onNext: function (record) {
-        bcrypt.compare(req.query.p,record._fields[0], (err, result) => {
+        bcrypt.compare(req.body.p,record._fields[0], (err, result) => {
           if (err) {
             console.log(err)
             res.sendStatus(403)
@@ -321,12 +291,86 @@ neo4j.createConnection('neo4j', '12345', function(session) {
     })
   })
 
+  app.post("/api/logOutEverywhere", function (req, res) {
+    var username = helpers.safeUserName(req.body.u)
+    var count = 0
+    validateApiKey(username, req.body.key, () => {
+      session.run("MATCH (u:User {userId: {username}})-[:apiKey]->(k:ApiKey) DETACH DELETE k RETURN count(k) as count",{username: username})
+      .subscribe({
+        onNext: function (record) {
+          count = (record._fields[0].low != undefined ? record._fields[0].low : record._fields[0])
+        },
+        onCompleted: function () {
+          res.status(200).send(JSON.stringify({result: "success", keysRemoved: count}))
+        },
+        onError: function (error) {
+          console.log(error)
+          res.send(JSON.stringify({result: "error", message: "Failed to check for available IDs"}))
+        }
+      })
+    }, () => {
+      res.sendStatus(403)
+    }, (error) => {
+      res.send(JSON.stringify({result: "error", message: "Failed to verify API key"}))
+    })
+
+  })
+
+  app.post("/api/newGraph", function (req, res) {
+    var username = helpers.safeUserName(req.body.u)
+    validateApiKey(username, req.body.key, () => {
+      var name = helpers.safeName(req.body.name)
+      var graphId = helpers.safeGraphId(name)
+      var exists = false
+      var resultId = ""
+      session.run("MATCH (u:User {userId: {username}})-[:ownsGraph]->(g:Graph {graphId: {graphId}}) Return g",{graphId: graphId, username: username})
+      .subscribe({
+        onNext: function (record) {
+          exists = true
+          console.log("ERROR")
+        },
+        onCompleted: function () {
+          if (exists) {
+            res.status(400).send(JSON.stringify({result: "error", message: "Graph name too similar to existing graph"}))
+            return
+          } else {
+            session.run(`MATCH (u:User {userId: {username}}) CREATE (u)-[:ownsGraph]->(g:Graph {graphId: {graphId}, name:{name}}) RETURN g.graphId`,{graphId: graphId, name: name, username: username})
+            .subscribe({
+              onNext: function (record) {
+                resultId = record._fields[0]
+              },
+              onCompleted: function () {
+                if (resultId != "") {
+                  res.status(200).send(JSON.stringify({result: "success", graphId: resultId}))
+                }
+              },
+              onError: function (error) {
+                console.log(error)
+                res.status(500).send(JSON.stringify({result: "error", message: "Failed to add graph"}))
+              }
+            })
+          }
+
+        },
+        onError: function (error) {
+          console.log(error)
+          res.status(500).send(JSON.stringify({result: "error", message: "Failed to check for conflicting graphs"}))
+        }
+      })
+    }, () => {
+      res.status(403).send(JSON.stringify({result: "error", message: "Authentication Failed. Please log back in."}))
+    }, (error) => {
+      res.status(500).send(JSON.stringify({result: "error", message: "Failed to verify API key"}))
+    })
+
+  })
+
   app.post("/api/addNode", function (req, res) {
-    var username = safeUserName(req.query.u)
-    validateApiKey(username, req.query.key, () => {
-      var name = safeName(req.query.name)
-      var type = safeType(req.query.type)
-      var graphId = safeId(req.query.graphId)
+    var username = helpers.safeUserName(req.body.u)
+    validateApiKey(username, req.body.key, () => {
+      var name = helpers.safeName(req.body.name)
+      var type = helpers.safeType(req.body.type)
+      var graphId = helpers.safeGraphId(req.body.graphId)
       var ids = []
       var id = 0
       session.run("MATCH (u:User {userId: {username}})-[:ownsGraph]->(g:Graph {graphId: {graphId}})-[:contains]->(b) RETURN distinct b.visId",{graphId: graphId, username: username})
@@ -340,7 +384,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
               id = i
             }
           }
-          session.run(`MATCH (g:Graph {graphId: {graphId} }) CREATE (g)-[:contains]->(a:${type} {visId: {id}, name: {name}})`,{graphId: graphId, name: name, id: id})
+          session.run(`MATCH (u:User {userId: {username}})-[:ownsGraph]->(g:Graph {graphId: {graphId} }) CREATE (g)-[:contains]->(a:${type} {visId: {id}, name: {name}})`,{username: username, graphId: graphId, name: name, id: id})
           .subscribe({
             onNext: function (record) {
             },
@@ -367,14 +411,14 @@ neo4j.createConnection('neo4j', '12345', function(session) {
   })
 
   app.post("/api/addRelationship", function (req, res) {
-    var username = safeUserName(req.query.u)
-    validateApiKey(username, req.query.key, () => {
-      var name = safeName(req.query.name)
+    var username = helpers.safeUserName(req.body.u)
+    validateApiKey(username, req.body.key, () => {
+      var name = helpers.safeName(req.body.name)
       var params = {
-        prettyName: safeName(req.query.pretty),
-        graphId: safeId(req.query.graphId),
-        from: safeId(req.query.from),
-        to: safeId(req.query.to),
+        prettyName: helpers.safeName(req.body.pretty),
+        graphId: helpers.safeGraphId(req.body.graphId),
+        from: helpers.safeId(req.body.from),
+        to: helpers.safeId(req.body.to),
         username: username
       }
       session.run(`MATCH (a {visId: {from}})<-[:contains]-(g:Graph {graphId: {graphId} })<-[:ownsGraph]-(u:User {userId: {username}}), (g)-[:contains]->(b {visId: {to}}) MERGE (a)-[:${name} {prettyName: {prettyName}}]->(b)`,params)
@@ -398,8 +442,8 @@ neo4j.createConnection('neo4j', '12345', function(session) {
 
   app.post("/api/registerUser", function (req, res) {
     var params = {
-      name: safeName(req.query.name),
-      username: safeUserName(req.query.u),
+      name: helpers.safeName(req.body.name),
+      username: helpers.safeUserName(req.body.u),
       hash: undefined
     }
     if (params.username === "INVALID USERNAME") {
@@ -415,7 +459,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
       },
       onCompleted: function () {
         if (!exists) {
-          bcrypt.hash(req.query.p,10,(err, hash) => {
+          bcrypt.hash(req.body.p,10,(err, hash) => {
             if (err) {
               console.log(err)
             } else {
@@ -456,7 +500,5 @@ neo4j.createConnection('neo4j', '12345', function(session) {
     return res.send(JSON.stringify({message: 'Didnt go in if'}))
   })
 
-  app.listen(PORT, function() {
-    console.log('Listening on port: ', PORT)
-  })
+  module.exports = app
 })

@@ -1,3 +1,4 @@
 angular.module('rtApp')
-        .controller('AccountController',['$scope','$http', ($scope,$http,$routeParams) => {
+        .controller('AccountController', function ($scope,$http,$routeParams) {
     }
+)
