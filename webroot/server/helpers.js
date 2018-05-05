@@ -31,19 +31,15 @@ module.exports = {
    * Forces name to match format safe for database
    */
   safeName: (name) => {
-    // Make sure type is even a string. If not, return "Person".
-    if (name == undefined || !(typeof name === "string" || name instanceof String)) {
+    // Make sure type is even a string. If not, return "Unnamed".
+    if (name == undefined || !(typeof name === "string"
+      || name instanceof String || name.length == 0)) {
       return "Unnamed"
     }
 
-    // Remove non alphabetical letters and force lowercase
-    name = name.replace(/[^a-zA-Z\s]/gi, '')
-
-    // Shorten string if it's long, make it Person if it's empty
+    // Shorten string if it's long
     if (name.length > 100) {
       name = name.slice(0,100)
-    } else if (name.length == 0) {
-      name = "Unnamed"
     }
     return name
   },

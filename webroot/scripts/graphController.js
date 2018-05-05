@@ -150,9 +150,9 @@ angular.module('rtApp')
             color.b = 70
             break;
           case "Event":
-            color.r = 70
-            color.g = 70
-            color.b = 250
+            color.r = 170
+            color.g = 200
+            color.b = 255
             break;
           default:
             color.r = 225
