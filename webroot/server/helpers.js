@@ -66,6 +66,27 @@ module.exports = {
   },
 
   /*
+   * Forces username to match format safe for database
+   */
+  safeGraphId: (graphId) => {
+    // Make sure type is even a string. If not, fix it.
+    if (graphId == undefined) {
+      graphId = 0
+    }
+
+    // Remove non alphabetical letters and force lowercase
+    graphId = graphId.toString().toLowerCase().replace(/[^a-z0-9_-\s]/gi, '_').replace(/\s/gi, '-')
+
+    // Shorten string if it's long, make it Person if it's empty
+    if (graphId.length > 64) {
+      graphId = graphId.slice(0,64)
+    } else if (graphId.length == 0) {
+      graphId = "0"
+    }
+    return graphId
+  },
+
+  /*
    * Forces id to be an integer
    */
   safeId: (id) => {

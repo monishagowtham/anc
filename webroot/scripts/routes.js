@@ -13,13 +13,17 @@ angular.module('rtApp')
     templateUrl: "/views/home.html",
     controller: "HomeController as hc"
   })
-  .when("/account", {
+  .when("/account/:user?", {
     templateUrl: "/views/account.html",
     controller: "AccountController as ac"
   })
-  .when("/graph/:user/:graph/:node", {
+  .when("/graph/:user?/:graph?/:node?", {
     templateUrl: "/views/graph.html",
     controller: "GraphController as gc"
+  })
+  .when("/new", {
+    templateUrl: "/views/newgraph.html",
+    controller: "NewGraphController as ngc"
   })
   .when("/privacy", {
     templateUrl: "/views/privacy.html"

@@ -24,9 +24,14 @@
     <!-- Link AngularJS app -->
     <script src="/scripts/app.js"></script>
 
+    <!-- Link AngularJS Factories and Services -->
+    <script src="/scripts/expressFactory.js"></script>
+    <script src="/scripts/loginFactory.js"></script>
+
     <!-- Link AngularJS controllers -->
     <script src="/scripts/templateController.js"></script>
     <script src='/scripts/graphController.js'></script>
+    <script src='/scripts/newGraphController.js'></script>
     <script src='/scripts/accountController.js'></script>
     <script src='/scripts/loginController.js'></script>
     <script src='/scripts/homeController.js'></script>
@@ -46,17 +51,17 @@
             <span class="navbar-toggler-icon"></span>
           </button>
           <div class="collapse navbar-collapse" id="navbarNavDropdown">
-            <ul class="navbar-nav">
+            <ul class="navbar-nav ml-auto">
               <li class="nav-item active">
                 <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
               </li>
-              <li class="nav-item dropdown">
+              <li ng-if="loginObject.loggedIn" class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                   Graphs
                 </a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                  <a class="dropdown-item" href="/graph/austin/1/0">Test Graph</a>
-                  <a class="dropdown-item" href="/graph/austin/0/0">Other Test Graph</a>
+                  <a ng-repeat="graph in loginObject.graphs" class="dropdown-item" href="/graph/{{loginObject.username}}/{{graph.id}}">{{graph.name}}</a>
+                  <a class="dropdown-item text-success" href="/new">Add New Graph</a>
                 </div>
               </li>
               <li class="nav-item dropdown">
@@ -64,10 +69,10 @@
                   Account
                 </a>
                 <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                  <a class="dropdown-item" href="/account">My Profile</a>
-                  <a class="dropdown-item" href="#" data-toggle="modal" data-target="#loginModal" ng-click="fillLogin()">Login</a>
-                  <a class="dropdown-item" href="#" data-toggle="modal" data-target="#loginModal" ng-click="fillRegister()">Register</a>
-                  <a class="dropdown-item text-danger" ng-click="loginObject.logout()" href="#">Logout</a>
+                  <a class="dropdown-item" href="/account" ng-if="loginObject.loggedIn">My Profile</a>
+                  <a class="dropdown-item" href="#" ng-if="!loginObject.loggedIn" data-toggle="modal" data-target="#loginModal" ng-click="fillLogin()">Login</a>
+                  <a class="dropdown-item" href="#" ng-if="!loginObject.loggedIn" data-toggle="modal" data-target="#loginModal" ng-click="fillRegister()">Register</a>
+                  <a class="dropdown-item text-danger" ng-if="loginObject.loggedIn" ng-click="loginObject.logout()" href="#">Logout</a>
                 </div>
               </li>
             </ul>
@@ -79,8 +84,8 @@
     <!-- Modal -->
     <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalTitle" aria-hidden="true">
       <div class="modal-dialog" role="document">
-        <div class="modal-content modal-corners"  ng-if="!register"><div ng-include="'/views/login.html'" ng-controller="LoginController as lc" rt-init="insideModal=true"></div></div>
-        <div class="modal-content modal-corners"  ng-if="register"><div ng-include="'/views/register.html'" ng-controller="LoginController as rc" rt-init="insideModal=true"></div></div>
+        <div class="modal-content modal-corners"  ng-if="!register"><div ng-include="'/views/login.html'" ng-controller="LoginController as lc" rt-init="insideModal=()"></div></div>
+        <div class="modal-content modal-corners"  ng-if="register"><div ng-include="'/views/register.html'" ng-controller="LoginController as rc" rt-init="insideModal=()"></div></div>
       </div>
     </div>
   </div>

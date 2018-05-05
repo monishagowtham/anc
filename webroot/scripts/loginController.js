@@ -1,6 +1,8 @@
 angular.module('rtApp')
         .controller('LoginController', function ($scope,$http,$location,Express,Login) {
-          $scope.insideModal = $scope.insideModal || false
+
+          var path = $location.path()
+          $scope.insideModal = (path !== '/register' && path !== '/login')
           $scope.loginObject = Login
           $scope.showMismatch = false
 
