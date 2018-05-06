@@ -48,14 +48,11 @@ app.get('/scripts/:script*', (req,res) => {
 
 app.get('/styles/:style*', (req,res) => {
   //console.log(`Attempting to read ${req.originalUrl}`)
-  if (path.extname(req.originalUrl).includes("map")) {
-    res.status(415).end()
-    return
-  }
   var url = req.originalUrl.slice(1)
   if (req.params.style === 'dep') {
     var urlMap = {
       "bootstrap" : "node_modules/bootstrap/dist/css/bootstrap.css",
+      "bootstrap.css.map" : "node_modules/bootstrap/dist/css/bootstrap.css.map",
       "vis" : "node_modules/vis/dist/vis.css"
     }
     url = urlMap[path.basename(req.originalUrl)]

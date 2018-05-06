@@ -10,6 +10,20 @@ angular.module('rtApp')
   //Check if user is logged in
   $scope.loginObject = Login
   $scope.loginObject.checkSession()
+  $scope.confirmMessage = "Are you sure you want to do this?"
+  $scope.selectedNode = {id: 0, name: "", type: ""}
+  $scope.selectedEdge = {id: 0, from: 0, to: 0, pretty: ""}
+  $scope.confirmAction = "OK"
+  $scope.confirmLevel = 1 // 0 - blue; 1 - green ; 2 - yellow ; 3 - red ; invalid - grey
+  $scope.confirmColor = function () {
+    switch($scope.confirmLevel) {
+      case 0: return "btn-success"
+      case 1: return "btn-primary"
+      case 2: return "btn-warning"
+      case 3: return "btn-danger"
+      default: return "btn-secondary"
+    }
+  }
 
   $scope.graphId = $routeParams.graph || 0
   $scope.homeId = $routeParams.node || 0 // should do some get request to check what the default node should be. NOTE: 0 may not even exist if it's deleted
@@ -86,19 +100,26 @@ angular.module('rtApp')
     })
     .then(function onSuccess(response) {
       var html = ""
-      html += `<h6>${response.data.name.toString()}</h6><br/>`
+      html += `<h5>${response.data.name}</h5>`
+      html += `<p class="wrap">${response.data.desc}</p><hr/>`
+      if (response.data.from.length > 0) {
+        html += `<h6>${response.data.name.slice(0,15)}'s Relationships:</h6>`
+      }
       response.data.from.forEach(function(record){
         var prettyName = (record.prettyName == undefined ?
                          record.type : record.prettyName)
         html += `<p>has ${prettyName} ${record.to}</p>`
       })
       if (response.data.to.length > 0 && response.data.from.length > 0) {
-        html += '<br />'
+        html += '<hr />'
+      }
+      if (response.data.to.length > 0) {
+        html += `<h6>Relationships featuring ${response.data.name.slice(0,15)}:</h6>`
       }
       response.data.to.forEach(function(record){
         var prettyName = (record.prettyName == undefined ?
                          record.type : record.prettyName)
-        html += `<p>${prettyName} of ${record.from}</p>`
+        html += `<p>${prettyName} of/by ${record.from}</p>`
       })
       var output = document.createElement('div')
       output.innerhtml = html.trim()
@@ -170,9 +191,9 @@ angular.module('rtApp')
         }
         if ($scope.nodes.get(record.properties.visId) == undefined){
           $scope.nodes.add([{id: record.properties.visId,
-          label: record.properties.name, color: colors, title: "Error loading info", hidden: true}])
+          label: record.properties.name, color: colors, title: "Loading info", hidden: true}])
 
-          var localNode = {name: record.properties.name, id: record.properties.visId, rels: 0}
+          var localNode = {name: record.properties.name, id: record.properties.visId, rels: 0, type: record.type}
           $scope.allNodes.push(localNode)
           getNumberRelationships(localNode)
         }
@@ -228,7 +249,7 @@ angular.module('rtApp')
 
              // If it doesn't exist the other way, add it
              $scope.edges.add([{id: edgeId, from: record.from, to: record.to,
-                               label: newLabel, arrows: 'from', hidden: false}])
+                               label: newLabel, arrows: 'to', hidden: false}])
 
              // Make node visible since it will appear on the graph
              $scope.nodes.update({id: record.from, hidden: false})
@@ -279,8 +300,22 @@ angular.module('rtApp')
            var edges = properties.edges
            if (nodes.length > 0) {
              $scope.nodeSelected = true
+             var id = nodes[0]
+             $scope.selectedNode.id = id
+             $scope.allNodes.forEach((node)=>{
+               if (id == node.id) {
+                 $scope.selectedNode.name = node.name
+                 $scope.selectedNode.type = node.type
+               }
+             })
            } else if (edges.length > 0) {
              $scope.onlyEdgeSelected = true
+             var id = edges[0]
+             var edge = $scope.edges.get(id)
+             $scope.selectedEdge.id = id
+             $scope.selectedEdge.from = edge.from
+             $scope.selectedEdge.to = edge.to
+             $scope.selectedEdge.pretty = edge.label
            }
            $scope.$apply()
          })
@@ -468,7 +503,7 @@ angular.module('rtApp')
     /*
      * Create Node
      */
-    $scope.createNode = function(name,type) {
+    $scope.createNode = function(name,type,desc) {
       var request = Express.requestFactory("addNode")
       $http.post(
               request.build(),
@@ -477,11 +512,194 @@ angular.module('rtApp')
                 "u": $scope.graphAuthor,
                 "name": name,
                 "type": type,
+                "desc": desc,
                 "key": $scope.loginObject.key
               })
       )
       .then(function onSuccess(response) {
           generateNodesList()
+      },
+      function onError(response) {
+          console.log(response)
+          $scope.loginObject.logout()
+      })
+    }
+
+    $scope.confirmEditNode = function(name,type,desc) {
+      var id = $scope.selectedNode.id
+      var oldType = $scope.selectedNode.type
+      var oldName = $scope.selectedNode.name
+      $scope.confirmMessage = `Are you sure you want to edit ${oldName}?`
+      $scope.confirmAction = 'Edit'
+      $scope.confirmLevel = 2 //Yellow
+      $('#confirmDialogButton').off('click').on('click',function(){
+        editNode(id,oldType,oldName,name,type,desc)
+        generateNodesList()
+      })
+      $('#confirmDialog').modal('show')
+    }
+
+    $scope.confirmDeleteNode = function() {
+      var id = $scope.selectedNode.id
+      var type = $scope.selectedNode.type
+      var name = $scope.selectedNode.name
+      $scope.confirmMessage = `Are you sure you want to delete ${name}?`
+      $scope.confirmAction = 'Delete'
+      $scope.confirmLevel = 3 //Red
+      $('#confirmDialogButton').off('click').on('click',function(){
+        deleteNode(id,type)
+        generateNodesList()
+      })
+      $('#confirmDialog').modal('show')
+    }
+
+    /*
+     * Edit Node
+     */
+    function editNode (id,type,name,newName,newType,newDesc) {
+      var request = Express.requestFactory("editNode")
+      $http.post(
+              request.build(),
+              JSON.stringify({
+                "graphId": $scope.graphId,
+                "u": $scope.graphAuthor,
+                "id": id,
+                "type": type,
+                "name": name,
+                "newName": newName,
+                "newType": newType,
+                "desc": newDesc,
+                "key": $scope.loginObject.key
+              })
+      )
+      .then(function onSuccess(response) {
+          console.log(response)
+          generateNodesList()
+      },
+      function onError(response) {
+          console.log(response)
+          $scope.loginObject.logout()
+      })
+    }
+
+    /*
+     * Delete Node
+     */
+    function deleteNode (id,type) {
+      var request = Express.requestFactory("deleteNode")
+      $http.post(
+              request.build(),
+              JSON.stringify({
+                "graphId": $scope.graphId,
+                "u": $scope.graphAuthor,
+                "type": type,
+                "id": id,
+                "key": $scope.loginObject.key
+              })
+      )
+      .then(function onSuccess(response) {
+          generateNodesList()
+      },
+      function onError(response) {
+          console.log(response)
+          $scope.loginObject.logout()
+      })
+    }
+
+    $scope.confirmEditRelationship = function(newPretty) {
+      var pretty = $scope.selectedEdge.pretty
+      var from = $scope.selectedEdge.from
+      var to = $scope.selectedEdge.to
+      $scope.confirmMessage = `Are you sure you want to edit ${pretty}?`
+      $scope.confirmAction = 'Edit'
+      $scope.confirmLevel = 2 //Yellow
+      $('#confirmDialogButton').off('click').on('click',function(){
+        editRelationship(pretty,from,to,newPretty)
+      })
+      $('#confirmDialog').modal('show')
+    }
+
+    $scope.confirmDeleteRelationship = function() {
+      var type = $scope.selectedEdge.pretty
+      var from = $scope.selectedEdge.from
+      var to = $scope.selectedEdge.to
+      $scope.confirmMessage = `Are you sure you want to delete the relationship ${type}?`
+      $scope.confirmAction = 'Delete'
+      $scope.confirmLevel = 3 //Red
+      $('#confirmDialogButton').off('click').on('click',function(){
+        deleteRelationship(type,from,to)
+      })
+      $('#confirmDialog').modal('show')
+    }
+
+    /*
+     * Edit Node
+     */
+    function editRelationship (pretty,from,to,newPretty) {
+      var request = Express.requestFactory("editRelationship")
+      var newName = newPretty.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, i) {
+         if (+match === 0) return ""
+         return i == 0 ? match.toLowerCase() : match.toUpperCase()
+       })
+       var name = pretty.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, i) {
+          if (+match === 0) return ""
+          return i == 0 ? match.toLowerCase() : match.toUpperCase()
+        })
+        console.log(JSON.stringify({
+          "graphId": $scope.graphId,
+          "u": $scope.graphAuthor,
+          "name": name,
+          "from": from,
+          "to": to,
+          "newName": newName,
+          "prettyName": newPretty,
+          "key": $scope.loginObject.key
+        }))
+       $http.post(
+               request.build(),
+               JSON.stringify({
+                 "graphId": $scope.graphId,
+                 "u": $scope.graphAuthor,
+                 "name": name,
+                 "from": from,
+                 "to": to,
+                 "newName": newName,
+                 "prettyName": newPretty,
+                 "key": $scope.loginObject.key
+               })
+       )
+       .then(function onSuccess(response) {
+           $scope.generateRelationshipList()
+           console.log(response)
+       },
+       function onError(response) {
+           console.log(response)
+           $scope.loginObject.logout()
+       })
+     }
+
+    /*
+     * Delete Node
+     */
+    function deleteRelationship (type,from,to) {
+      var name = type.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, i) {
+         if (+match === 0) return ""
+         return i == 0 ? match.toLowerCase() : match.toUpperCase()
+       })
+      var request = Express.requestFactory("deleteRelationship")
+      $http.post(
+              request.build(),
+              JSON.stringify({
+                "graphId": $scope.graphId,
+                "u": $scope.graphAuthor,
+                "name": name,
+                "from": from,
+                "to": to,
+                "key": $scope.loginObject.key
+              })
+      )
+      .then(function onSuccess(response) {
+        $scope.generateRelationshipList()
       },
       function onError(response) {
           console.log(response)

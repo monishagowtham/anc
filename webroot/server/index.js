@@ -26,7 +26,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
  function validateApiKey(user, apiKey, callback, reject, error) {
    var cutoff = Math.floor(new Date() / 1000) - 200000
    var found = false
-   session.run("MATCH (u:User {userId: {user}})-[:apiKey]->(k:ApiKey {key: {key}}) return k.stamp", {user: user, key: apiKey})
+   session.run("MATCH (u:user {userId: {user}})-[:apiKey]->(k:apikey {key: {key}}) return k.stamp", {user: user, key: apiKey})
      .subscribe({
        onNext: function (record) {
          if (cutoff <= record._fields[0]) {
@@ -34,7 +34,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
          }
        },
        onCompleted: function () {
-         session.run("MATCH (u:User {userId: {user}})-[:apiKey]->(k:ApiKey) WHERE k.stamp <= {then} DETACH DELETE k", {user: user, then: cutoff })
+         session.run("MATCH (u:user {userId: {user}})-[:apiKey]->(k:apikey) WHERE k.stamp <= {then} DETACH DELETE k", {user: user, then: cutoff })
          if (found) {
            callback()
          } else {
@@ -81,7 +81,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
     var username = helpers.safeUserName(req.query.u)
     var graphId = helpers.safeGraphId(req.query.graphId)
     var records = []
-    session.run("MATCH (u:User {userId: {username}})-[:ownsGraph]->(g:Graph {graphId: {graphId} })-[:contains]->(n) RETURN distinct n LIMIT 10000",{graphId: graphId, username: username})
+    session.run("MATCH (u:user {userId: {username}})-[:ownsGraph]->(g:graph {graphId: {graphId} })-[:contains]->(n) RETURN distinct n LIMIT 10000",{graphId: graphId, username: username})
     .subscribe({
       onNext: function (record) {
         var rec = {
@@ -110,7 +110,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
        graphId: helpers.safeGraphId(req.query.graphId),
        id: helpers.safeId(req.query.id)
      }
-     session.run('MATCH (u:User {userId: {username}})-[:ownsGraph]->(g:Graph {graphId: {graphId}})-[:contains]->({visId: {id}})-[r]-(b) WHERE NOT b:Graph RETURN count(r) as count', parameters)
+     session.run('MATCH (u:user {userId: {username}})-[:ownsGraph]->(g:graph {graphId: {graphId}})-[:contains]->({visId: {id}})-[r]-(b) WHERE NOT b:graph RETURN count(r) as count', parameters)
      .subscribe({
        onNext: function (record) {
          records.count = (record._fields[0].low == undefined ? record._fields[0] : record._fields[0].low)
@@ -134,13 +134,15 @@ neo4j.createConnection('neo4j', '12345', function(session) {
     var fromRecords = []
     var toRecords = []
     var name = "<name>"
-    session.run('MATCH (u:User {userId: {username}})-[:ownsGraph]->(g:Graph {graphId: {graphId}})-[:contains]->(s {visId: {visId}}) RETURN s LIMIT 1', parameters)
+    var desc = ""
+    session.run('MATCH (u:user {userId: {username}})-[:ownsGraph]->(g:graph {graphId: {graphId}})-[:contains]->(s {visId: {visId}}) RETURN s LIMIT 1', parameters)
     .subscribe({
       onNext: function (record) {
         name = record._fields[0].properties.name
+        desc = record._fields[0].properties.desc || ""
       },
       onCompleted: function () {
-        session.run('MATCH (s {visId: {visId}})-[r]->(n)<-[:contains]-(g:Graph {graphId: {graphId}})<-[:ownsGraph]-(u:User {userId: {username}}) RETURN distinct r,n LIMIT 10000', parameters)
+        session.run('MATCH (s {visId: {visId}})-[r]->(n)<-[:contains]-(g:graph {graphId: {graphId}})<-[:ownsGraph]-(u:user {userId: {username}}) RETURN distinct r,n LIMIT 10000', parameters)
         .subscribe({
           onNext: function (record) {
             var rec = {
@@ -152,7 +154,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
           },
           onCompleted: function () {
 
-            session.run('MATCH (s {visId: {visId}})<-[r]-(n)<-[:contains]-(g:Graph {graphId: {graphId}})<-[:ownsGraph]-(u:User {userId: {username}}) RETURN distinct r,n LIMIT 10000', parameters)
+            session.run('MATCH (s {visId: {visId}})<-[r]-(n)<-[:contains]-(g:graph {graphId: {graphId}})<-[:ownsGraph]-(u:user {userId: {username}}) RETURN distinct r,n LIMIT 10000', parameters)
             .subscribe({
               onNext: function (record) {
                 var rec = {
@@ -165,7 +167,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
                 }
               },
               onCompleted: function () {
-                res.send(JSON.stringify({name: name, from: fromRecords, to: toRecords}))
+                res.send(JSON.stringify({name: name, desc: desc, from: fromRecords, to: toRecords}))
               },
               onError: function (error) {
                 console.log(error)
@@ -193,14 +195,14 @@ neo4j.createConnection('neo4j', '12345', function(session) {
 
     }
     var records = []
-    session.run(`MATCH (u:User {userId: {username}})-[:ownsGraph]->(g:Graph {graphId: {graphId}})-[:contains]->(n1 {visId: {id}})-[r]->(n2) WHERE NOT n2:Graph RETURN r, n1, n2 UNION MATCH (u:User {userId: {username}})-[:ownsGraph]->(g:Graph {graphId: {graphId}})-[:contains]->(n2 {visId: {id}})<-[r]-(n1) WHERE NOT n1:Graph RETURN r, n1, n2 UNION MATCH (u:User {userId: {username}})-[:ownsGraph]->(g:Graph {graphId: {graphId}})-[:contains]->(a {visId: {id}})-[]-(n1)-[r]->(n2) WHERE NOT n2:Graph AND NOT n1:Graph RETURN r, n1, n2 UNION MATCH (u:User {userId: {username}})-[:ownsGraph]->(g:Graph {graphId: {graphId}})-[:contains]->(a {visId: {id}})-[]-(n2)<-[r]-(n1) WHERE NOT n2:Graph AND NOT n1:Graph RETURN r, n1, n2 UNION MATCH (u:User {userId: {username}})-[:ownsGraph]->(g:Graph {graphId: {graphId}})-[:contains]->(a {visId: {id}})-[]-(b)-[]-(n1)-[r]->(n2) WHERE NOT n2:Graph AND NOT n1:Graph AND NOT b:Graph RETURN r, n1, n2 UNION MATCH (u:User {userId: {username}})-[:ownsGraph]->(g:Graph {graphId: {graphId}})-[:contains]->(a {visId: {id}})-[]-(b)-[]-(n2)<-[r]-(n1) WHERE NOT n2:Graph AND NOT n1:Graph AND NOT b:Graph RETURN r, n1, n2`, params)
+    session.run(`MATCH (u:user {userId: {username}})-[:ownsGraph]->(g:graph {graphId: {graphId}})-[:contains]->(n1 {visId: {id}})-[r]->(n2) WHERE NOT n2:graph RETURN r, n1, n2 UNION MATCH (u:user {userId: {username}})-[:ownsGraph]->(g:graph {graphId: {graphId}})-[:contains]->(n2 {visId: {id}})<-[r]-(n1) WHERE NOT n1:graph RETURN r, n1, n2 UNION MATCH (u:user {userId: {username}})-[:ownsGraph]->(g:graph {graphId: {graphId}})-[:contains]->(a {visId: {id}})-[]-(n1)-[r]->(n2) WHERE NOT n2:graph AND NOT n1:graph RETURN r, n1, n2 UNION MATCH (u:user {userId: {username}})-[:ownsGraph]->(g:graph {graphId: {graphId}})-[:contains]->(a {visId: {id}})-[]-(n2)<-[r]-(n1) WHERE NOT n2:graph AND NOT n1:graph RETURN r, n1, n2 UNION MATCH (u:user {userId: {username}})-[:ownsGraph]->(g:graph {graphId: {graphId}})-[:contains]->(a {visId: {id}})-[]-(b)-[]-(n1)-[r]->(n2) WHERE NOT n2:graph AND NOT n1:graph AND NOT b:graph RETURN r, n1, n2 UNION MATCH (u:user {userId: {username}})-[:ownsGraph]->(g:graph {graphId: {graphId}})-[:contains]->(a {visId: {id}})-[]-(b)-[]-(n2)<-[r]-(n1) WHERE NOT n2:graph AND NOT n1:graph AND NOT b:graph RETURN r, n1, n2`, params)
     .subscribe({
       onNext: function (record) {
         var rec = {
           type: record._fields[0].type,
           properties: record._fields[0].properties,
-          to: (record._fields[1].properties.visId.low == undefined ? record._fields[1].properties.visId : record._fields[1].properties.visId.low),
-          from: (record._fields[2].properties.visId.low == undefined ? record._fields[2].properties.visId : record._fields[2].properties.visId.low)
+          from: (record._fields[1].properties.visId.low == undefined ? record._fields[1].properties.visId : record._fields[1].properties.visId.low),
+          to: (record._fields[2].properties.visId.low == undefined ? record._fields[2].properties.visId : record._fields[2].properties.visId.low)
         }
         records.push(rec)
       },
@@ -221,7 +223,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
       username: username
     }
     var records = []
-    session.run(`MATCH (u:User {userId: {username}})-[:ownsGraph]->(g:Graph) RETURN g`, params)
+    session.run(`MATCH (u:user {userId: {username}})-[:ownsGraph]->(g:graph) RETURN g`, params)
     .subscribe({
       onNext: function (record) {
         var graph = {
@@ -252,7 +254,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
       res.sendStatus(403)
       return
     }
-    session.run('MATCH (u:User {userId: {user}})-[:password]->(p) RETURN p.pwd',params)
+    session.run('MATCH (u:user {userId: {user}})-[:password]->(p) RETURN p.pwd',params)
     .subscribe({
       onNext: function (record) {
         bcrypt.compare(req.body.p,record._fields[0], (err, result) => {
@@ -263,7 +265,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
             if (!result) {
               res.sendStatus(403)
             } else {
-              session.run('MATCH (u:User {userId: {user}}) CREATE (u)-[:apiKey]->(:ApiKey {key: {key}, stamp: {stamp}})',params)
+              session.run('MATCH (u:user {userId: {user}}) CREATE (u)-[:apiKey]->(:apikey {key: {key}, stamp: {stamp}})',params)
               .subscribe({
                 onNext: function (record) {
                 },
@@ -295,7 +297,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
     var username = helpers.safeUserName(req.body.u)
     var count = 0
     validateApiKey(username, req.body.key, () => {
-      session.run("MATCH (u:User {userId: {username}})-[:apiKey]->(k:ApiKey) DETACH DELETE k RETURN count(k) as count",{username: username})
+      session.run("MATCH (u:user {userId: {username}})-[:apiKey]->(k:apikey) DETACH DELETE k RETURN count(k) as count",{username: username})
       .subscribe({
         onNext: function (record) {
           count = (record._fields[0].low != undefined ? record._fields[0].low : record._fields[0])
@@ -323,7 +325,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
       var graphId = helpers.safeGraphId(name)
       var exists = false
       var resultId = ""
-      session.run("MATCH (u:User {userId: {username}})-[:ownsGraph]->(g:Graph {graphId: {graphId}}) Return g",{graphId: graphId, username: username})
+      session.run("MATCH (u:user {userId: {username}})-[:ownsGraph]->(g:graph {graphId: {graphId}}) Return g",{graphId: graphId, username: username})
       .subscribe({
         onNext: function (record) {
           exists = true
@@ -334,7 +336,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
             res.status(400).send(JSON.stringify({result: "error", message: "Graph name too similar to existing graph"}))
             return
           } else {
-            session.run(`MATCH (u:User {userId: {username}}) CREATE (u)-[:ownsGraph]->(g:Graph {graphId: {graphId}, name:{name}}) RETURN g.graphId`,{graphId: graphId, name: name, username: username})
+            session.run(`MATCH (u:user {userId: {username}}) CREATE (u)-[:ownsGraph]->(g:graph {graphId: {graphId}, name:{name}}) RETURN g.graphId`,{graphId: graphId, name: name, username: username})
             .subscribe({
               onNext: function (record) {
                 resultId = record._fields[0]
@@ -371,9 +373,10 @@ neo4j.createConnection('neo4j', '12345', function(session) {
       var name = helpers.safeName(req.body.name)
       var type = helpers.safeType(req.body.type)
       var graphId = helpers.safeGraphId(req.body.graphId)
+      var desc = req.body.desc
       var ids = []
       var id = 0
-      session.run("MATCH (u:User {userId: {username}})-[:ownsGraph]->(g:Graph {graphId: {graphId}})-[:contains]->(b) RETURN distinct b.visId",{graphId: graphId, username: username})
+      session.run("MATCH (u:user {userId: {username}})-[:ownsGraph]->(g:graph {graphId: {graphId}})-[:contains]->(b) RETURN distinct b.visId",{graphId: graphId, username: username})
       .subscribe({
         onNext: function (record) {
           ids.push(record._fields[0].low == undefined ? record._fields[0] : record._fields[0].low)
@@ -384,7 +387,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
               id = i
             }
           }
-          session.run(`MATCH (u:User {userId: {username}})-[:ownsGraph]->(g:Graph {graphId: {graphId} }) CREATE (g)-[:contains]->(a:${type} {visId: {id}, name: {name}})`,{username: username, graphId: graphId, name: name, id: id})
+          session.run(`MATCH (u:user {userId: {username}})-[:ownsGraph]->(g:graph {graphId: {graphId} }) CREATE (g)-[:contains]->(a:${type} {visId: {id}, name: {name}, desc: {desc}})`,{username: username, graphId: graphId, name: name, id: id, desc: desc})
           .subscribe({
             onNext: function (record) {
             },
@@ -410,10 +413,96 @@ neo4j.createConnection('neo4j', '12345', function(session) {
 
   })
 
+  app.post("/api/editNode", function (req, res) {
+    var username = helpers.safeUserName(req.body.u)
+    validateApiKey(username, req.body.key, () => {
+      var name = helpers.safeName(req.body.newName || req.body.name)
+      var type = helpers.safeType(req.body.type)
+      var newType = helpers.safeType(req.body.newType || req.body.type)
+      var graphId = helpers.safeGraphId(req.body.graphId)
+      var id = helpers.safeId(req.body.id)
+      var desc = req.body.desc || ""
+      session.run(`MATCH (u:user {userId: {username}})-[:ownsGraph]->(g:graph {graphId: {graphId} })-[:contains]->(n:${type} {visId: {id}}) REMOVE n:${type} SET n:${newType} SET n.name={name} SET n.desc={desc}`,{username: username, graphId: graphId, name: name, id: id, desc: desc})
+      .subscribe({
+        onNext: function (record) {
+        },
+        onCompleted: function () {
+          res.send(JSON.stringify({id: id}))
+        },
+        onError: function (error) {
+          console.log(error)
+          res.send(JSON.stringify({result: "error", message: "Failed to add node"}))
+        }
+      })
+    }, () => {
+      res.sendStatus(403)
+    }, (error) => {
+      res.send(JSON.stringify({result: "error", message: "Failed to verify API key"}))
+    })
+
+  })
+
+  app.post("/api/deleteNode", function (req, res) {
+    var username = helpers.safeUserName(req.body.u)
+    validateApiKey(username, req.body.key, () => {
+      var type = helpers.safeType(req.body.type)
+      var graphId = helpers.safeGraphId(req.body.graphId)
+      var id = helpers.safeId(req.body.id)
+      session.run(`MATCH (u:user {userId: {username}})-[:ownsGraph]->(g:graph {graphId: {graphId} })-[:contains]->(n:${type} {visId: {id}}) DETACH DELETE n`,{username: username, graphId: graphId, id: id})
+      .subscribe({
+        onNext: function (record) {
+        },
+        onCompleted: function () {
+          res.send(JSON.stringify({id: id}))
+        },
+        onError: function (error) {
+          console.log(error)
+          res.send(JSON.stringify({result: "error", message: "Failed to remove node"}))
+        }
+      })
+    }, () => {
+      res.sendStatus(403)
+    }, (error) => {
+      res.send(JSON.stringify({result: "error", message: "Failed to verify API key"}))
+    })
+
+  })
+
+  app.post("/api/deleteRelationship", function (req, res) {
+    var username = helpers.safeUserName(req.body.u)
+    validateApiKey(username, req.body.key, () => {
+      var name = helpers.safeRelType(req.body.name)
+      var params = {
+        graphId: helpers.safeGraphId(req.body.graphId),
+        from: helpers.safeId(req.body.from),
+        to: helpers.safeId(req.body.to),
+        username: username
+      }
+
+      session.run(`MATCH (b {visId: {to}})<-[r:${name}]-(a {visId: {from}})<-[:contains]-(g:graph {graphId: {graphId} })<-[:ownsGraph]-(u:user {userId: {username}}) DELETE r`,params)
+      .subscribe({
+        onNext: function (record) {
+        },
+        onCompleted: function () {
+          res.send(JSON.stringify({result: "success"}))
+        },
+        onError: function (error) {
+          console.log(error)
+          res.send(JSON.stringify({result: "error", message: "Failed to add Relationship"}))
+        }
+      })
+    }, () => {
+      res.sendStatus(403)
+    }, (error) => {
+      res.send(JSON.stringify({result: "error", message: "Failed to verify API key"}))
+    })
+
+  })
+
   app.post("/api/addRelationship", function (req, res) {
     var username = helpers.safeUserName(req.body.u)
     validateApiKey(username, req.body.key, () => {
-      var name = helpers.safeName(req.body.name)
+      var name = helpers.safeRelType(req.body.name)
       var params = {
         prettyName: helpers.safeName(req.body.pretty),
         graphId: helpers.safeGraphId(req.body.graphId),
@@ -421,7 +510,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
         to: helpers.safeId(req.body.to),
         username: username
       }
-      session.run(`MATCH (a {visId: {from}})<-[:contains]-(g:Graph {graphId: {graphId} })<-[:ownsGraph]-(u:User {userId: {username}}), (g)-[:contains]->(b {visId: {to}}) MERGE (a)-[:${name} {prettyName: {prettyName}}]->(b)`,params)
+      session.run(`MATCH (a {visId: {from}})<-[:contains]-(g:graph {graphId: {graphId} })<-[:ownsGraph]-(u:user {userId: {username}}), (g)-[:contains]->(b {visId: {to}}) MERGE (a)-[:${name} {prettyName: {prettyName}}]->(b)`,params)
       .subscribe({
         onNext: function (record) {
         },
@@ -440,7 +529,38 @@ neo4j.createConnection('neo4j', '12345', function(session) {
     })
   })
 
-  app.post("/api/registerUser", function (req, res) {
+  app.post("/api/editRelationship", function (req, res) {
+    var username = helpers.safeUserName(req.body.u)
+    validateApiKey(username, req.body.key, () => {
+      var name = helpers.safeRelType(req.body.name)
+      var newName = helpers.safeRelType(req.body.newName)
+      var params = {
+        prettyName: helpers.safeName(req.body.prettyName),
+        graphId: helpers.safeGraphId(req.body.graphId),
+        from: helpers.safeId(req.body.from),
+        to: helpers.safeId(req.body.to),
+        username: username
+      }
+      session.run(`MATCH (b {visId: {to}})<-[r:${name}]-(a {visId: {from}})<-[:contains]-(g:graph {graphId: {graphId}})<-[:ownsGraph]-(u:user {userId: {username}}) DELETE r MERGE (a)-[:${newName} {prettyName: {prettyName}}]->(b)`,params)
+      .subscribe({
+        onNext: function (record) {
+        },
+        onCompleted: function () {
+          res.send(JSON.stringify({result: "success"}))
+        },
+        onError: function (error) {
+          console.log(error)
+          res.send(JSON.stringify({result: "error", message: "Failed to add Relationship"}))
+        }
+      })
+    }, () => {
+      res.sendStatus(403)
+    }, (error) => {
+      res.send(JSON.stringify({result: "error", message: "Failed to verify API key"}))
+    })
+  })
+
+  app.post("/api/registeruser", function (req, res) {
     var params = {
       name: helpers.safeName(req.body.name),
       username: helpers.safeUserName(req.body.u),
@@ -451,11 +571,11 @@ neo4j.createConnection('neo4j', '12345', function(session) {
       return
     }
     var exists = false
-    session.run("MATCH (u:User {userId: {username}}) RETURN u",params)
+    session.run("MATCH (u:user {userId: {username}}) RETURN u",params)
     .subscribe({
       onNext: function (record) {
         res.status(500)
-        res.send(JSON.stringify({result: "error", message: "User already exists"}))
+        res.send(JSON.stringify({result: "error", message: "user already exists"}))
       },
       onCompleted: function () {
         if (!exists) {
@@ -464,7 +584,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
               console.log(err)
             } else {
               params.hash = hash
-              session.run("CREATE (h:HashedPassword {userId: {username}, pwd: {hash}})<-[:password]-(u:User {userId: {username}, name: {name}})-[:ownsGraph]->(g:Graph {graphId: 0})-[:contains]->(p:Person {visId: 0, name: \"Example McExamplton\"})<-[:homeOf]-(g)",params)
+              session.run("CREATE (h:hashedpassword {userId: {username}, pwd: {hash}})<-[:password]-(u:user {userId: {username}, name: {name}})-[:ownsGraph]->(g:graph {graphId: 0})-[:contains]->(p:Person {visId: 0, name: \"Example McExamplton\"})<-[:homeOf]-(g)",params)
               .subscribe({
                 onNext: function (record) {
                 },

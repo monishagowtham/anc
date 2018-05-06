@@ -234,10 +234,19 @@ button.reg-sizing:hover {
   overflow: hidden;
 }
 
+.edit-title {
+  padding-left: 12px;
+  font-weight: 600;
+}
+
+body {
+  overflow: hidden;
+}
+
 #graph {
   z-index: 1;
   position: relative;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
   display: border-box;
   border: 1px solid lightgray;

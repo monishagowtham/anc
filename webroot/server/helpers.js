@@ -28,6 +28,27 @@ module.exports = {
   },
 
   /*
+   * Forces type to match format used in database
+   */
+  safeRelType: (type) => {
+    // Make sure type is even a string. If not, return "Person".
+    if (type == undefined || !(typeof type === "string" || type instanceof String)) {
+      return "Person"
+    }
+
+    // Remove non alphabetical letters and force lowercase
+    type = type.toLowerCase().replace(/[^a-z]/gi, '')
+
+    // Shorten string if it's long, make it Person if it's empty
+    if (type.length > 32) {
+      type = type.slice(0,32)
+    } else if (type.length == 0) {
+      type = "Person"
+    }
+    return type
+  },
+
+  /*
    * Forces name to match format safe for database
    */
   safeName: (name) => {

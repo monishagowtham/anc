@@ -7,20 +7,20 @@
         <div class="card" id="top-card">
           <div class="card-header" id="headingOne">
             <h5 class="mb-0">
-              <button class="btn btn-link collapse-title" data-toggle="collapse" data-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+              <button class="btn btn-link collapse-title collapsed" data-toggle="collapse" data-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
                 Hide/Show Relationships
               </button>
             </h5>
           </div>
-          <div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+          <div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordion">
             <div class="card-body">
               <div class="sub-filter" id="edge-filter">
                 <input id="filter-search" class="form-control" ng-model="relSearch" placeholder="Filter"/><br />
                 <div class="btn-group-toggle" data-toggle="buttons">
                   <div class="pre-scrollable">
                       <a data-ng-repeat="relationship in filterRelationships | filter: relSearch" on-finish-render="finished" href="javascript://void()" ng-click='hideType(relationship)' class="list-group-item" data-toggle="tooltip">
-                          <h4 ng-if="!getFirstEdgeWithLabel(relationship).hidden" class="relationship-name">{{relationship}}<span class="badge badge-dark relationship-count float-right">{{getNumberOfEdgesWithLabel(relationship)}}</span></h4>
-                          <h4 ng-if="getFirstEdgeWithLabel(relationship).hidden" class="relationship-name negated">{{relationship}}<span class="badge badge-secondary negated relationship-count float-right">{{getNumberOfEdgesWithLabel(relationship)}}</span></h4>
+                          <h4 ng-if="!getFirstEdgeWithLabel(relationship).hidden" class="relationship-name"><span class="rn-title">{{relationship}}</span><span class="badge badge-dark relationship-count float-right">{{getNumberOfEdgesWithLabel(relationship)}}</span></h4>
+                          <h4 ng-if="getFirstEdgeWithLabel(relationship).hidden" class="relationship-name negated"><span class="rn-title">{{relationship}}</span><span class="badge badge-secondary negated relationship-count float-right">{{getNumberOfEdgesWithLabel(relationship)}}</span></h4>
                           <input id="checkbox{{relationship}}" type="checkbox" style="display:none" ng-checked="getFirstEdgeWithLabel(relationship).hidden">
                       </a>
                       <br />
@@ -46,8 +46,8 @@
                 <div class="btn-group-toggle" data-toggle="buttons">
                   <div class="pre-scrollable">
                       <a data-ng-repeat="node in allNodes | filter: nodeSearch" on-finish-render="finished" href="javascript://void()" ng-click='moveTo(node.id)' class="list-group-item" data-toggle="tooltip">
-                          <h4 ng-if="node.id == homeId" class="relationship-name">{{node.name}}<span class="badge badge-dark relationship-count float-right">{{node.rels}}</span></h4>
-                          <h4 ng-if="node.id != homeId" class="relationship-name unchosen">{{node.name}}<span class="badge badge-secondary relationship-count float-right">{{node.rels}}</span></h4>
+                          <h4 ng-if="node.id == homeId" class="relationship-name"><span class="rn-title">{{node.name}}</span><span class="badge badge-dark relationship-count float-right">{{node.rels}}</span></h4>
+                          <h4 ng-if="node.id != homeId" class="relationship-name unchosen"><span class="rn-title">{{node.name}}</span><span class="badge badge-secondary relationship-count float-right">{{node.rels}}</span></h4>
                           <input id="checkbox{{relationship}}" type="checkbox" style="display:none" ng-checked="getFirstEdgeWithLabel(relationship).hidden">
                       </a>
                       <br />
@@ -74,6 +74,7 @@
                   <li class="page-item " ng-class="(editView == 2 ? 'active' : '')"><a class="page-link" ng-class="(editView == 2 ? 'text-light bg-dark deborder' : 'text-dark')" href="#" ng-click="setEditView(2)">Edit Selected</a></li>
                 </ul>
                 <div ng-if="editView == 0">
+                  <h4 class="edit-title">Add Node</h4>
                   <form class="form-horizontal" action="/#" onsubmit="return false">
                     <div class="form-group">
                       <div class="col-sm-10">
@@ -93,18 +94,25 @@
                       </div>
                     </div>
                     <div class="form-group">
+                      <label class="control-label col-sm-6" for="pwd">Description:</label>
+                      <div class="col-sm-10">
+                        <textarea rows="5" class="form-control" ng-model="newNodeDesc" placeholder="Description"></textarea>
+                      </div>
+                    </div>
+                    <div class="form-group">
                       <div class="col-sm-offset-2 col-sm-10">
-                        <button type="submit" ng-click="createNode(newNodeName,newNodeType)" class="btn btn-outline-success">Add Node</button>
+                        <button type="submit" ng-click="createNode(newNodeName,newNodeType,newNodeDesc)" class="btn btn-outline-success">Add Node</button>
                       </div>
                     </div>
                   </form>
                 </div>
                 <div ng-if="editView == 1">
+                  <h4 class="edit-title">Add Relationship</h4>
                   <form class="form-horizontal" action="/#" onsubmit="return false">
                     <div class="form-group">
-                      <label class="control-label col-sm-6">Relationship Label:</label>
+                      <label class="control-label col-sm-6">Label:</label>
                       <div class="col-sm-10">
-                        <input type="text" class="form-control" ng-model="prettyName" placeholder="Relationship Label">
+                        <input type="text" class="form-control" ng-model="prettyName" placeholder="Label">
                       </div>
                     </div>
                     <div class="form-group">
@@ -138,10 +146,54 @@
                 </div>
                 <div ng-if="editView == 2">
                   <div ng-if="nodeSelected">
-                    edit node (include delete button)
+                    <form class="form-horizontal" action="/#" onsubmit="return false">
+                      <h4 class="edit-title">Edit Node</h4>
+                      <div class="form-group">
+                        <div class="col-sm-10">
+                          <label class="col-xs-3 control-label">Node Type:</label>
+                            <div class="col-xs-5 selectContainer">
+                              <select class="form-control" ng-model="editNodeType">
+                                  <option value="" disabled="disabled">Choose a Type</option>
+                                  <option ng-repeat="nodeType in nodeTypes" value="{{nodeType}}">{{nodeType}}</option>
+                              </select>
+                            </div>
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label class="control-label col-sm-6" for="pwd">Name:</label>
+                        <div class="col-sm-10">
+                          <input type="text" class="form-control" ng-model="editNodeName" placeholder="Name">{{originalNodeName}}</input>
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label class="control-label col-sm-6" for="pwd">Description:</label>
+                        <div class="col-sm-10">
+                          <textarea rows="5" class="form-control" ng-model="editNodeDesc" placeholder="Description">{{originalNodeDesc}}</textarea>
+                        </div>
+                      </div>
+                      <div class="col-sm-offset-2 col-sm-10">
+                        <button type="submit" ng-click="confirmEditNode(editNodeName, editNodeType, editNodeDesc)" class="btn btn-outline-success w-100">Save Node</button><br/><br/>
+                        <button type="submit" ng-click="confirmDeleteNode()" class="btn btn-outline-danger w-100">Delete Node</button><br/>
+                      </div>
+                    </form>
                   </div>
                   <div ng-if="onlyEdgeSelected">
-                    edit relationship (include delete button)
+                    <form class="form-horizontal" action="/#" onsubmit="return false">
+                      <h4 class="edit-title">Edit Relationship</h4>
+                      <div class="form-group">
+                        <label class="control-label col-sm-6">Label:</label>
+                        <div class="col-sm-10">
+                          <input type="text" class="form-control" ng-model="newPrettyName" placeholder="Label">
+                        </div>
+                      </div>
+                      <div class="col-sm-offset-2 col-sm-10">
+                        <button type="submit" ng-click="confirmEditRelationship(newPrettyName)" class="btn btn-outline-success w-100">Save Changes</button><br/><br/>
+                        <button type="submit" ng-click="confirmDeleteRelationship()" class="btn btn-outline-danger w-100">Delete Relationship</button><br/>
+                      </div>
+                    </form>
+                  </div>
+                  <div ng-if="!nodeSelected && !onlyEdgeSelected">
+                    <p class="edit-title">Click on a node or relationship to edit it.</p>
                   </div>
                 </div>
               </div>
@@ -174,4 +226,23 @@
       </div>
     </div>
     <div id="graph"></div>
+    <div class="modal" id="confirmDialog" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="confirm">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Confirm Action</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p>{{confirmMessage}}</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+            <button id="confirmDialogButton" type="button" class="btn " ng-class="confirmColor()" data-dismiss="modal">{{confirmAction}}</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
