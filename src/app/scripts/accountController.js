@@ -1,5 +1,5 @@
 angular.module('rtApp')
-        .controller('AccountController', function ($scope,$http,$routeParams,Login,Express) {
+        .controller('AccountController', function ($scope,$http,$routeParams,Login,Express,Title) {
         $scope.loginObject = Login
         $scope.loginObject.checkSession()
         $scope.username = $routeParams.user || $scope.loginObject.username
@@ -32,5 +32,9 @@ angular.module('rtApp')
 
           }
         )
+
+        if ($scope.username != $scope.loginObject.username) {
+          Title.setTitle($scope.username)
+        }
     }
 )
