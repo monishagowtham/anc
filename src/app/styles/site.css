@@ -239,6 +239,10 @@ button.reg-sizing:hover {
   font-weight: 600;
 }
 
+.padded-content {
+  padding: 12px;
+}
+
 body {
   overflow: hidden;
 }

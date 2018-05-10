@@ -271,6 +271,32 @@ neo4j.createConnection('neo4j', '12345', function(session) {
     })
   })
 
+  app.get('/api/getName', function (req,res) {
+    var username = helpers.safeUserName(req.query.u)
+    var params = {
+      username: username
+    }
+    var name = ""
+    session.run(`MATCH (u:user {userId: {username}}) RETURN u.name`, params)
+    .subscribe({
+      onNext: function (record) {
+        name = record._fields[0]
+      },
+      onCompleted: function () {
+        //session.close()
+        if (name != "") {
+          res.status(200).send(JSON.stringify({result: "success", name: name}))
+        } else {
+          res.status(400).send(JSON.stringify({result: "error", message: `Graph with id ${graphId} not found`}))
+        }
+      },
+      onError: function (error) {
+        console.log(error)
+        res.status(500).send(JSON.stringify({result: "error", message: "Database failed to respond to request"}))
+      }
+    })
+  })
+
   app.post('/api/requestApiKey', function (req,res) {
     var params = {
       user: req.body.u,
