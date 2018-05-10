@@ -1,7 +1,9 @@
 <!doctype html>
-<html ng-app="rtApp">
+<html ng-app="rtApp" ng-controller="TemplateController as tp">
   <head>
-    <title>Ancestry Test</title>
+    <!-- Set page title -->
+    <title ng-bind="titleService.title">Ancestry Test</title>
+
     <!-- Set character set -->
     <meta charset="utf-8">
 
@@ -27,6 +29,7 @@
     <!-- Link AngularJS Factories and Services -->
     <script src="/scripts/expressFactory.js"></script>
     <script src="/scripts/loginFactory.js"></script>
+    <script src="/scripts/titleService.js"></script>
 
     <!-- Link AngularJS controllers -->
     <script src="/scripts/templateController.js"></script>
@@ -42,7 +45,7 @@
     <!-- Set base URL for AngularJS route html5 mode -->
     <base href="/">
   </head>
-  <body ng-controller="TemplateController as tp">
+  <body>
     <div class="controller-div">
       <header>
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">

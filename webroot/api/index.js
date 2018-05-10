@@ -243,6 +243,34 @@ neo4j.createConnection('neo4j', '12345', function(session) {
     })
   })
 
+  app.get('/api/getGraphName', function (req,res) {
+    var username = helpers.safeUserName(req.query.u)
+    var graphId = helpers.safeGraphId(req.query.graphId)
+    var params = {
+      username: username,
+      graphId : graphId
+    }
+    var name = ""
+    session.run(`MATCH (u:user {userId: {username}})-[:ownsGraph]->(g:graph {graphId: {graphId}}) RETURN g.name`, params)
+    .subscribe({
+      onNext: function (record) {
+        name = record._fields[0]
+      },
+      onCompleted: function () {
+        //session.close()
+        if (name != "") {
+          res.status(200).send(JSON.stringify({result: "success", name: name}))
+        } else {
+          res.status(400).send(JSON.stringify({result: "error", message: `Graph with id ${graphId} not found`}))
+        }
+      },
+      onError: function (error) {
+        console.log(error)
+        res.status(500).send(JSON.stringify({result: "error", message: "Database failed to respond to request"}))
+      }
+    })
+  })
+
   app.post('/api/requestApiKey', function (req,res) {
     var params = {
       user: req.body.u,
@@ -314,6 +342,39 @@ neo4j.createConnection('neo4j', '12345', function(session) {
       res.sendStatus(403)
     }, (error) => {
       res.send(JSON.stringify({result: "error", message: "Failed to verify API key"}))
+    })
+
+  })
+
+  app.post("/api/setGraphName", function (req, res) {
+    var username = helpers.safeUserName(req.body.u)
+    validateApiKey(username, req.body.key, () => {
+      var graphId = helpers.safeGraphId(req.body.graphId)
+      var name = helpers.safeName(req.body.name)
+      var newGraphId = helpers.safeGraphId(name)
+      var exists = false
+      var resultId = ""
+      session.run(`MATCH (u:user {userId: {username}})-[:ownsGraph]->(g:graph {graphId: {graphId}}) SET g.graphId = {newGraphId} SET g.name = {name} RETURN g.graphId`,{graphId: graphId, name: name, newGraphId: newGraphId, username: username})
+      .subscribe({
+        onNext: function (record) {
+          resultId = record._fields[0]
+        },
+        onCompleted: function () {
+          if (resultId != "") {
+            res.status(200).send(JSON.stringify({result: "success", graphId: resultId}))
+          } else {
+            res.status(400).send(JSON.stringify({result: "error", message: "Graph does not exist"}))
+          }
+        },
+        onError: function (error) {
+          console.log(error)
+          res.status(500).send(JSON.stringify({result: "error", message: "Failed to edit graph"}))
+        }
+      })
+    }, () => {
+      res.status(403).send(JSON.stringify({result: "error", message: "Authentication Failed. Please log back in."}))
+    }, (error) => {
+      res.status(500).send(JSON.stringify({result: "error", message: "Failed to verify API key"}))
     })
 
   })
@@ -584,7 +645,7 @@ neo4j.createConnection('neo4j', '12345', function(session) {
               console.log(err)
             } else {
               params.hash = hash
-              session.run("CREATE (h:hashedpassword {userId: {username}, pwd: {hash}})<-[:password]-(u:user {userId: {username}, name: {name}})-[:ownsGraph]->(g:graph {graphId: 0})-[:contains]->(p:Person {visId: 0, name: \"Example McExamplton\"})<-[:homeOf]-(g)",params)
+              session.run("CREATE (h:hashedpassword {userId: {username}, pwd: {hash}})<-[:password]-(u:user {userId: {username}, name: {name}})",params)
               .subscribe({
                 onNext: function (record) {
                 },
@@ -611,13 +672,22 @@ neo4j.createConnection('neo4j', '12345', function(session) {
     })
   })
 
-  app.post('/api/closeDB', function(req, res) {
+  /*app.post('/api/closeDB', function(req, res) {
     res.set('Content-Type', 'application/json')
     if(req.body.message == 'R U ROBOT?') {
       driver.close()
       return res.send(JSON.stringify({message: 'Went inside if'}))
     }
     return res.send(JSON.stringify({message: 'Didnt go in if'}))
+  })*/
+
+  app.get('/api/*', function(req,res) {
+    res.set('Content-Type', 'application/json')
+    .status(404)
+    .send(JSON.stringify({
+      result: "error",
+      message: "Action does not exist"
+    }))
   })
 
   module.exports = app

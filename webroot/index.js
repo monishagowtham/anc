@@ -1,15 +1,15 @@
 const http = require('http')
 const path = require('path')
 
-const app = require('./server')
+const app = require('./api')
 const PORT = process.env.RTREE_PORT || 8000
 const SEND_FILE_OPTIONS = {
-  root: './'
+  root: path.dirname(require.main.filename)
 }
 
 app.get('/views/*', (req,res) => {
   //console.log(`Attempting to read ${req.originalUrl}`)
-  res.sendFile(req.originalUrl.slice(1), SEND_FILE_OPTIONS, (err) => {
+  res.sendFile('app' + req.originalUrl, SEND_FILE_OPTIONS, (err) => {
     if (err) {
       console.log("OOPS " + req.originalUrl.slice(1))
       res.status(404).end()
@@ -23,7 +23,7 @@ app.get('/scripts/:script*', (req,res) => {
     res.status(415).end()
     return
   }
-  var url = req.originalUrl.slice(1)
+  var url = 'app' + req.originalUrl
   if (req.params.script === 'dep') {
     //console.log("dep " + path.basename(req.originalUrl))
     var urlMap = {
@@ -48,7 +48,7 @@ app.get('/scripts/:script*', (req,res) => {
 
 app.get('/styles/:style*', (req,res) => {
   //console.log(`Attempting to read ${req.originalUrl}`)
-  var url = req.originalUrl.slice(1)
+  var url = 'app' + req.originalUrl
   if (req.params.style === 'dep') {
     var urlMap = {
       "bootstrap" : "node_modules/bootstrap/dist/css/bootstrap.css",
@@ -67,12 +67,33 @@ app.get('/styles/:style*', (req,res) => {
   })
 })
 
+app.get('/favicon.ico', (req,res) => {
+  //console.log(`Attempting to read ${req.originalUrl}`)
+
+  res.sendFile("app" + req.originalUrl, SEND_FILE_OPTIONS, (err) => {
+    if (err) {
+      console.log("OOPS " + url)
+      res.status(404).end()
+    }
+  })
+})
+
+app.get('/assets/*', (req,res) => {
+  //console.log(`Attempting to read ${req.originalUrl}`)
+  res.sendFile(req.originalUrl.slice(1), SEND_FILE_OPTIONS, (err) => {
+    if (err) {
+      console.log("OOPS " + url)
+      res.status(404).end()
+    }
+  })
+})
+
 // Define any additional routes before the next one
 
 app.get('/*', (req,res) => {
   //console.log(`Attempting to read ${req.originalUrl}`)
   //console.log('\n\n\n')
-  res.sendFile("index.html", SEND_FILE_OPTIONS, (err) => {
+  res.sendFile("app/template.html", SEND_FILE_OPTIONS, (err) => {
     if (err) {
       console.log("OOPS " + req.originalUrl.slice(1))
       res.status(404).end()
