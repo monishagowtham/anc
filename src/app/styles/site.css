@@ -262,3 +262,16 @@ body {
   width: 30vw;
   float: right;
 }
+
+#Welcome {
+  padding-top: 20px;
+}
+
+#Welcome h1 {
+  font-size: 60px;
+}
+
+#Welcome p {
+  padding-top: 20px;
+  font-size: 25px;
+}
