@@ -4,7 +4,7 @@
  */
 
 angular.module('rtApp')
-        .controller('GraphController', function ($scope,$http,$routeParams,Login,Express) {
+        .controller('GraphController', function ($scope,$http,$routeParams,Login,Express,Title) {
 
 
   //Check if user is logged in
@@ -42,6 +42,28 @@ angular.module('rtApp')
   $scope.setEditView = (view) => {
     $scope.editView = view
   }
+
+  // Get access to edit page title
+  $scope.titleService = Title
+
+  // set the page title
+  var request = Express.requestFactory("getGraphName")
+  .addParameter("u",$scope.graphAuthor)
+  .addParameter("graphId",$scope.graphId)
+  $http.get(request.build())
+  .then(
+    function onSuccess(response) {
+      if (response.status == 200) {
+        console.log(response)
+        $scope.titleService.setTitle(response.data.name)
+      } else {
+        onError(response)
+      }
+    },
+    function onError(response) {
+      console.log(response)
+    }
+  )
 
 
   /*

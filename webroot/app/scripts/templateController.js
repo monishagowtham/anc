@@ -1,7 +1,7 @@
 // AngularJS controller for Template
 
 angular.module('rtApp')
-        .controller('TemplateController', function ($scope, $sce, $location, Login) {
+        .controller('TemplateController', function ($scope, $sce, $location, $rootScope, Login, Title) {
 
     $scope.currentpage = $location.path().slice(1).split('/')
     console.log($scope.currentpage)
@@ -24,4 +24,12 @@ angular.module('rtApp')
     $scope.fillRegister = function () {
       $scope.register = true
     }
+
+    $scope.titleService = Title
+
+    $rootScope.$on('$routeChangeSuccess', function(event, current, previous) {
+      if (current.$$route.title != "Graph") {
+        $scope.titleService.setTitle(current.$$route.title)
+      }
+    })
 })
