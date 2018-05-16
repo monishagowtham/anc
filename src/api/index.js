@@ -271,6 +271,36 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
     })
   })
 
+  app.get('/api/getGraphViews', function (req,res) {
+    var username = helpers.safeUserName(req.query.u)
+    var graphId = helpers.safeGraphId(req.query.graphId)
+    var count = req.query.count == true ? 1 : 0
+    var params = {
+      username: username,
+      graphId : graphId,
+      add : count
+    }
+    var views = "fail"
+    session.run(`MATCH (u:user {userId: {username}})-[:ownsGraph]->(g:graph {graphId: {graphId}}) SET g.views = coalesce(g.views,0) + {add} RETURN g.views`, params)
+    .subscribe({
+      onNext: function (record) {
+        views = record._fields[0]
+      },
+      onCompleted: function () {
+        //session.close()
+        if (views != "fail") {
+          res.status(200).send(JSON.stringify({result: "success", views: views}))
+        } else {
+          res.status(400).send(JSON.stringify({result: "error", message: `Graph with id ${graphId} not found`}))
+        }
+      },
+      onError: function (error) {
+        console.log(error)
+        res.status(500).send(JSON.stringify({result: "error", message: "Database failed to respond to request"}))
+      }
+    })
+  })
+
   app.get('/api/getName', function (req,res) {
     var username = helpers.safeUserName(req.query.u)
     var params = {
@@ -460,7 +490,7 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
       var name = helpers.safeName(req.body.name)
       var type = helpers.safeType(req.body.type)
       var graphId = helpers.safeGraphId(req.body.graphId)
-      var desc = req.body.desc
+      var desc = req.body.desc || ""
       var ids = []
       var id = 0
       session.run("MATCH (u:user {userId: {username}})-[:ownsGraph]->(g:graph {graphId: {graphId}})-[:contains]->(b) RETURN distinct b.visId",{graphId: graphId, username: username})

@@ -73,7 +73,7 @@
                   <li class="page-item " ng-class="(editView == 1 ? 'active' : '')"><a class="page-link" ng-class="(editView == 1 ? 'text-light bg-dark deborder' : 'text-dark')" href="#" ng-click="setEditView(1)">Add Relationship</a></li>
                   <li class="page-item " ng-class="(editView == 2 ? 'active' : '')"><a class="page-link" ng-class="(editView == 2 ? 'text-light bg-dark deborder' : 'text-dark')" href="#" ng-click="setEditView(2)">Edit Selected</a></li>
                 </ul>
-                <div ng-if="editView == 0">
+                <div ng-if="editView == 0" class="pre-scrollable">
                   <h4 class="edit-title">Add Node</h4>
                   <form class="form-horizontal" action="/#" onsubmit="return false">
                     <div class="form-group">
@@ -106,7 +106,7 @@
                     </div>
                   </form>
                 </div>
-                <div ng-if="editView == 1">
+                <div ng-if="editView == 1" class="pre-scrollable">
                   <h4 class="edit-title">Add Relationship</h4>
                   <form class="form-horizontal" action="/#" onsubmit="return false">
                     <div class="form-group">
@@ -144,7 +144,7 @@
                       </div>
                     </form>
                 </div>
-                <div ng-if="editView == 2">
+                <div ng-if="editView == 2" class="pre-scrollable">
                   <div ng-if="nodeSelected">
                     <form class="form-horizontal" action="/#" onsubmit="return false">
                       <h4 class="edit-title">Edit Node</h4>
@@ -210,11 +210,12 @@
             </div>
 
             <div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordion">
-              <div class="card-body">
+              <div class="card-body pre-scrollable">
                 <div class="filter-form-item"><button class="btn btn-dark" ng-click="jiggleToggle()">Toggle Physics</button></div><br/>
                 <div ng-if="loginObject.loggedIn && graphAuthor === loginObject.username">
-                  <div class="filter-form-item"><button class="btn btn-dark" ng-click="">Secret Button</button></div>
+                  <div class="filter-form-item"><p>You created this graph</p></div>
                 </div>
+                <div class="filter-form-item"><p>{{views}} views</p></div>
               </div>
             </div>
 

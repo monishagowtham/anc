@@ -4,7 +4,7 @@ angular.module('rtApp')
         .controller('TemplateController', function ($scope, $sce, $location, $rootScope, Login, Title) {
 
     $scope.currentpage = $location.path().slice(1).split('/')
-    console.log($scope.currentpage)
+    //console.log($scope.currentpage)
 
     $scope.loginObject = Login
     $scope.loginObject.checkSession()
@@ -30,6 +30,20 @@ angular.module('rtApp')
     $rootScope.$on('$routeChangeSuccess', function(event, current, previous) {
       if (current.$$route.title != "Graph") {
         $scope.titleService.setTitle(current.$$route.title)
+        $scope.scrollableBody = true
+      } else {
+        $scope.scrollableBody = false
       }
     })
+
+    $scope.showConsentPopup = false
+
+    $scope.consentToStorage = function() {
+      localStorage.setItem("consent",true)
+      $scope.showConsentPopup = false
+    }
+
+    if (localStorage.getItem("consent") === null) {
+      $scope.showConsentPopup = true
+    }
 })
