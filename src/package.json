@@ -23,6 +23,7 @@
     "bcrypt": "^2.0.1",
     "body-parser": "^1.18.2",
     "bootstrap": "^4.0.0",
+    "dotenv": "^5.0.1",
     "express": "^4.16.3",
     "http-server-with-default": "1.0.0",
     "jquery": "^3.3.1",

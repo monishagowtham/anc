@@ -10,7 +10,7 @@ const helpers = require('./helpers')
 **** API CALLS **************************************************************
 ****************************************************************************/
 
-neo4j.createConnection('neo4j', '12345', function(session) {
+neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session) {
     app.use(bodyParser.urlencoded({ extended: false }))
     app.use(bodyParser.json())
     app.use((req, res, next) => {
@@ -50,9 +50,9 @@ neo4j.createConnection('neo4j', '12345', function(session) {
  app.get('/api/config', (req, res) => {
    res.set('Content-Type', 'application/JSON')
    res.send(JSON.stringify({
-     protocol: process.env.RTREE_PROTOCOL || "http",
-     domain: process.env.RTREE_DOMAIN || "localhost",
-     port:process.env.RTREE_PORT || 8000
+     protocol: process.env.PROTOCOL || "http",
+     domain: process.env.DOMAIN || "localhost",
+     port:process.env.EXTPORT || 8000
    }))
  })
 
