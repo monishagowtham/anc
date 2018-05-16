@@ -1,8 +1,10 @@
 const http = require('http')
 const path = require('path')
+const env = require('dotenv').config({path: `${path.dirname(require.main.filename)}/.env`})
+console.log(process.env.PORT)
 
 const app = require('./api')
-const PORT = process.env.RTREE_PORT || 8000
+const PORT = process.env.PORT || 8000
 const SEND_FILE_OPTIONS = {
   root: path.dirname(require.main.filename)
 }

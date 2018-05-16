@@ -1,7 +1,7 @@
 rtApp.factory('Express', function($http) {
   var _protocol = "http"
   var _domain = "localhost"
-  var _port = 8000
+  var _port = ":8000"
   // Get info from config file (if it exists)
   $http({
           method : "GET",
@@ -10,7 +10,11 @@ rtApp.factory('Express', function($http) {
   .then(function mySuccess(response) {
     _protocol = response.data.protocol
     _domain = response.data.domain
-    _port = response.data.port
+    _port = `:${response.data.port}`
+    if (_protocol === 'https' && _port === ':443'
+      || _protocol === 'http' && _port === ':80') {
+        _port = ''
+    }
   },
   function myError(response) {
     console.log("Failed to retrieve system configuration")
@@ -18,7 +22,7 @@ rtApp.factory('Express', function($http) {
   return {
     requestFactory : (call) => {
       var thisObj = {
-        _baseUrl : `${_protocol}://${_domain}:${_port}/api/${call}?`,
+        _baseUrl : `${_protocol}://${_domain}${_port}/api/${call}?`,
         _params : [{key: 1, value: 2}, {key: 2, value: 1}],
         addParameter : (key, value) => {
           thisObj._params.push ({

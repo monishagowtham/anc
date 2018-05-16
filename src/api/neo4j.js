@@ -1,7 +1,9 @@
 const neo4j = require('neo4j-driver').v1;
 var driver;
-const connectionURI = process.env.NEO4J_URI || `bolt://neo4j@ec2-18-218-77-87.us-east-2.compute.amazonaws.com`;
+const connectionURI = `bolt://${process.env.DBUSER || 'neo4j'}@${process.env.DBURI || 'localhost'}:${process.env.DBPORT || '7687'}`;
 var session;
+
+console.log(connectionURI)
 
 module.exports = {
   createConnection: function (username, password, callback) {
