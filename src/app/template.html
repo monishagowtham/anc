@@ -45,11 +45,11 @@
     <!-- Set base URL for AngularJS route html5 mode -->
     <base href="/">
   </head>
-  <body>
+  <body ng-class="(scrollableBody ? 'scrollable-body' : '')">
     <div class="controller-div">
       <header>
         <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-          <a class="navbar-brand" href="#">RelationshipTree™</a>
+          <a class="navbar-brand" href="/">RelationshipTree™</a>
           <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
@@ -92,5 +92,6 @@
       </div>
     </div>
   </div>
+  <div ng-if="showConsentPopup" class="consent alert alert-info" role="alert" ng-cloak><p>By continuing to use this website, you consent to local storage of website data. <a class="consent-link" href="/privacy">More info</a></p><button class="btn btn-info consent-btn" ng-click="consentToStorage()">OK</button></div>
   </body>
 </html>

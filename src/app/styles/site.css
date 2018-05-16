@@ -51,6 +51,23 @@ a {
   border: 1px solid #444444;
 }
 
+.consent {
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+}
+
+.consent-link {
+  text-decoration: underline;
+}
+
+.consent-btn {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+}
+
 .filter-button.active {
   background-color: #444444 !important;
   color: #dddddd !important;
@@ -232,6 +249,26 @@ button.reg-sizing:hover {
   border-radius: 0.3rem;
   border: none;
   overflow: hidden;
+}
+
+.f-right {
+  float: right;
+  width: 30vw;
+}
+
+.scrollable-body {
+  overflow-y: scroll
+}
+
+.f-left {
+  float: left;
+  width: 40vw;
+}
+
+.f-right > img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .edit-title {

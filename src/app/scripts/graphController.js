@@ -54,14 +54,45 @@ angular.module('rtApp')
   .then(
     function onSuccess(response) {
       if (response.status == 200) {
-        console.log(response)
         $scope.titleService.setTitle(response.data.name)
-      } else {
-        onError(response)
       }
     },
     function onError(response) {
-      console.log(response)
+    }
+  )
+
+  // set the number of views
+  var viewed = {}
+  try {
+    viewed = JSON.parse(sessionStorage.getItem('views'))
+  } catch (e) {
+    if (e instanceof SyntaxError || e instanceof TypeError) {
+      viewed = {}
+    } else {
+      throw e
+    }
+  }
+
+  if (viewed === null || viewed === undefined) {
+    viewed = {}
+  }
+
+  var count = !viewed[$scope.graphId]
+  $scope.views = 0
+  var request = Express.requestFactory("getGraphViews")
+  .addParameter("u",$scope.graphAuthor)
+  .addParameter("graphId",$scope.graphId)
+  .addParameter("count",count)
+  $http.get(request.build())
+  .then(
+    function onSuccess(response) {
+      if (response.status == 200) {
+        $scope.views = response.data.views
+        viewed[$scope.graphId] = true
+        sessionStorage.setItem('views',JSON.stringify(viewed))
+      }
+    },
+    function onError(response) {
     }
   )
 
