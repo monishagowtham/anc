@@ -111,7 +111,7 @@ if (process.env.PROTOCOL === 'https') {
     key: fs.readFileSync(process.env.CERTKEY || './certificate.pem'),
     cert: fs.readFileSync(process.env.CERT || './privatekey.pem')
   }, app)
-  var plainHttp = express.createServer()
+  var plainHttp = express().createServer()
   plainHttp.get('*', function(req, res) {
     res.redirect('https://' + req.headers.host + req.url)
   })
