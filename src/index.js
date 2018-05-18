@@ -1,4 +1,5 @@
 const http = require('http')
+const https = require('https')
 const path = require('path')
 const env = require('dotenv').config({path: `${path.dirname(require.main.filename)}/.env`})
 console.log(process.env.PORT)
@@ -103,6 +104,14 @@ app.get('/*', (req,res) => {
   })
 })
 
-app.listen(PORT, function() {
+if (process.env.PROTOCOL === 'https') {
+  var server = https.createServer({
+    key: fs.readFileSync(process.env.CERTKEY || './certificate.pem'),
+    cert: fs.readFileSync(process.env.CERT || './privatekey.pem')
+  }, app)
+} else {
+  var server = http.createServer(app)
+}
+server.listen(PORT, function() {
   console.log('Listening on port: ', PORT)
 })
