@@ -3,8 +3,11 @@ const app = express()
 const bodyParser = require('body-parser')
 const neo4j = require('./neo4j')
 const bcrypt = require('bcrypt')
+const { exec } = require('child_process')
 const uuid = require('uuid/v4')
 const helpers = require('./helpers')
+
+var tried = 0
 
 /****************************************************************************
 **** API CALLS **************************************************************
@@ -72,6 +75,9 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
           website: "online",
           database: "offline"
         }))
+        exec('service neo4j start', (err, stdout, stderr) => {
+            tried++
+        })
       }
     })
 
