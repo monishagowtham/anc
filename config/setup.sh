@@ -65,3 +65,17 @@ if [ -z "$DBPASS" ]; then
   DBPASS="12345"
 fi
 echo "DBPASS=$DBPASS" >> $FILE
+
+echo "Certificate location (Default /etc/letsencrypt/live/$DOMAIN/fullchain.pem): "
+read CERT
+if [ -z "$CERT" ]; then
+  CERT="/etc/letsencrypt/live/$DOMAIN/fullchain.pem"
+fi
+echo "CERT=$CERT" >> $FILE
+
+echo "Certificate key location (Default /etc/letsencrypt/live/$DOMAIN/privkey.pem): "
+read CERTKEY
+if [ -z "$CERTKEY" ]; then
+  CERTKEY="/etc/letsencrypt/live/$DOMAIN/privkey.pem"
+fi
+echo "CERTKEY=$CERTKEY" >> $FILE
