@@ -1,6 +1,5 @@
 const http = require('http')
 const https = require('https')
-const express = require('express')
 const fs = require('fs')
 const path = require('path')
 const env = require('dotenv').config({path: `${path.dirname(require.main.filename)}/.env`})
@@ -111,11 +110,10 @@ if (process.env.PROTOCOL === 'https') {
     key: fs.readFileSync(process.env.CERTKEY || './certificate.pem'),
     cert: fs.readFileSync(process.env.CERT || './privatekey.pem')
   }, app)
-  var plainHttp = express().createServer()
-  plainHttp.get('*', function(req, res) {
-    res.redirect('https://' + req.headers.host + req.url)
-  })
-  plainHttp.listen(80)
+  http.createServer(function (req, res) {
+    res.writeHead(301, { "Location": "https://" + req.headers['host'] + req.url });
+    res.end();
+  }).listen(80);
 } else {
   var server = http.createServer(app)
 }
