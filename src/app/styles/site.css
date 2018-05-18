@@ -253,7 +253,7 @@ button.reg-sizing:hover {
 
 .f-right {
   float: right;
-  width: 30vw;
+  width: 45%;
 }
 
 .scrollable-body {
@@ -262,7 +262,7 @@ button.reg-sizing:hover {
 
 .f-left {
   float: left;
-  width: 40vw;
+  width: 45%;
 }
 
 .f-right > img {
