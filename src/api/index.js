@@ -75,9 +75,11 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
           website: "online",
           database: "offline"
         }))
-        exec('service neo4j start', (err, stdout, stderr) => {
-            tried++
-        })
+        if (tried < 10) {
+          exec('service neo4j start', (err, stdout, stderr) => {
+              tried++
+          })
+        }
       }
     })
 
