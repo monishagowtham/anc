@@ -33,7 +33,8 @@ angular.module('rtApp')
     "Person",
     "Tribe",
     "Event",
-    "Document"
+    "Document",
+    "Place"
   ]
   $scope.nodeSelected = false
   $scope.onlyEdgeSelected = false
@@ -228,10 +229,15 @@ angular.module('rtApp')
             color.g = 200
             color.b = 255
             break;
-          default:
-            color.r = 225
-            color.g = 225
+          case "Place":
+            color.r = 130
+            color.g = 200
             color.b = 125
+            break;
+          default:
+            color.r = 200
+            color.g = 150
+            color.b = 225
             break;
         }
         var colors = {
