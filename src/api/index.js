@@ -699,8 +699,10 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
     session.run("MATCH (u:user {userId: {username}}) RETURN u",params)
     .subscribe({
       onNext: function (record) {
-        res.status(500)
-        res.send(JSON.stringify({result: "error", message: "user already exists"}))
+	if (!exists) {
+		exists = true
+        	res.status(500).send(JSON.stringify({result: "error", message: "user already exists"}))
+	}
       },
       onCompleted: function () {
         if (!exists) {
