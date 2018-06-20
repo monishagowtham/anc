@@ -3,13 +3,17 @@ const https = require('https')
 const fs = require('fs')
 const path = require('path')
 const env = require('dotenv').config({path: `${path.dirname(require.main.filename)}/.env`})
+const api = require('./api')
+const express = require('express')
 console.log(process.env.PORT)
 
-const app = require('./api')
+const app = express()
 const PORT = process.env.PORT || 8000
 const SEND_FILE_OPTIONS = {
   root: path.dirname(require.main.filename)
 }
+
+app.use('/api', api)
 
 app.get('/views/*', (req,res) => {
   //console.log(`Attempting to read ${req.originalUrl}`)

@@ -30,9 +30,10 @@
         <p>By creating an account you agree to our <a href='#' data-toggle="collapse" data-target="#privacyCollapse" class="text-primary">Terms & Privacy</a>.</p>
         <div class="pre-scrollable collapse" id="privacyCollapse"><div class="modal-body" ng-include="'/views/privacy.html'"></div></div>
       </div>
+      <label class="reg-sizing text-danger" ng-if="hasLoginError" ng-bind="loginErrorMessage"></label>
       <div class="clearfix reg-sizing">
         <button type="submit" class="signupbtn reg-sizing" ng-click="registerForm.$valid && validate(password,repeat) && register(username, password, remember, displayname)">Register</button>
-        <a href="/"><button type="button" class="cancelbtn reg-sizing">Cancel</button></a>
+        <a href="/"><button type="button" class="cancelbtn reg-sizing" data-dismiss="modal" aria-label="Close">Cancel</button></a>
       </div>
     </div>
   </form>

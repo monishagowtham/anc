@@ -17,11 +17,13 @@
       <label>
         <input class="reg-sizing" type="checkbox" checked="checked" ng-model="remember" name="remember" style="margin-bottom:15px"> Keep me logged in
       </label>
+      <label class="reg-sizing text-danger" ng-if="hasLoginError" ng-bind="loginErrorMessage"></label><br/>
 
       <div class="clearfix reg-sizing">
         <button type="submit" class="signupbtn reg-sizing" ng-click="loginForm.$valid && login(username,password,remember)">Log In</button>
-        <a href="/register"><button type="button" class="cancelbtn reg-sizing">Register</button></a>
+        <button type="button" class="cancelbtn reg-sizing" data-dismiss="modal" aria-label="Close">Cancel</button>
       </div>
+      <a href="/#" class="reg-sizing text-secondary" ng-click="fillRegister()">Need an account? Click here to Register!</a>
     </div>
   </form>
 </div>

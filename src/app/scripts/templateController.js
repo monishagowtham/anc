@@ -25,6 +25,8 @@ angular.module('rtApp')
       $scope.register = true
     }
 
+    $scope.loginObject.fillRegister = $scope.fillRegister
+
     $scope.titleService = Title
 
     $rootScope.$on('$routeChangeSuccess', function(event, current, previous) {

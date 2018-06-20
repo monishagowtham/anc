@@ -1,5 +1,5 @@
 const express = require('express')
-const app = express()
+const router = express.Router()
 const bodyParser = require('body-parser')
 const neo4j = require('./neo4j')
 const bcrypt = require('bcrypt')
@@ -14,9 +14,9 @@ var tried = 0
 ****************************************************************************/
 
 neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session) {
-    app.use(bodyParser.urlencoded({ extended: false }))
-    app.use(bodyParser.json())
-    app.use((req, res, next) => {
+    router.use(bodyParser.urlencoded({ extended: false }))
+    router.use(bodyParser.json())
+    router.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");
     res.header("Access-Control-Allow-Headers",
               "Origin, X-Requested-With, Content-Type, Accept");
@@ -50,7 +50,7 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
      })
  }
 
- app.get('/api/config', (req, res) => {
+ router.get('/config', (req, res) => {
    res.set('Content-Type', 'application/JSON')
    res.send(JSON.stringify({
      protocol: process.env.PROTOCOL || "http",
@@ -59,7 +59,7 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
    }))
  })
 
- app.get('/api/status', (req, res) => {
+ router.get('/status', (req, res) => {
    res.set('Content-Type', 'application/JSON')
    session.run("MATCH (n) RETURN count(n)")
     .subscribe({
@@ -85,7 +85,7 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
 
  })
 
-  app.get('/api/graphNodes', function (req, res) {
+  router.get('/graphNodes', function (req, res) {
     var username = helpers.safeUserName(req.query.u)
     var graphId = helpers.safeGraphId(req.query.graphId)
     var records = []
@@ -110,7 +110,7 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
     })
   })
 
-   app.get('/api/numberRelationships', function (req, res) {
+   router.get('/numberRelationships', function (req, res) {
      var username = helpers.safeUserName(req.query.u)
      var records = {count: 0}
      var parameters = {
@@ -132,7 +132,7 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
      })
    })
 
-  app.get('/api/relationshipsByNode', function (req, res) {
+  router.get('/relationshipsByNode', function (req, res) {
     var username = helpers.safeUserName(req.query.u)
     var parameters = {
       graphId: helpers.safeGraphId(req.query.graphId),
@@ -194,7 +194,7 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
     })
   })
 
-  app.get('/api/graphAroundNode', function (req,res) {
+  router.get('/graphAroundNode', function (req,res) {
     var username = helpers.safeUserName(req.query.u)
     var params = {
       id: helpers.safeId(req.query.id),
@@ -225,7 +225,7 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
     })
   })
 
-  app.get('/api/listGraphs', function (req,res) {
+  router.get('/listGraphs', function (req,res) {
     var username = helpers.safeUserName(req.query.u)
     var params = {
       username: username
@@ -251,7 +251,7 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
     })
   })
 
-  app.get('/api/getGraphName', function (req,res) {
+  router.get('/getGraphName', function (req,res) {
     var username = helpers.safeUserName(req.query.u)
     var graphId = helpers.safeGraphId(req.query.graphId)
     var params = {
@@ -279,7 +279,7 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
     })
   })
 
-  app.get('/api/getGraphViews', function (req,res) {
+  router.get('/getGraphViews', function (req,res) {
     var username = helpers.safeUserName(req.query.u)
     var graphId = helpers.safeGraphId(req.query.graphId)
     var count = req.query.count == true ? 1 : 0
@@ -309,7 +309,7 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
     })
   })
 
-  app.get('/api/getName', function (req,res) {
+  router.get('/getName', function (req,res) {
     var username = helpers.safeUserName(req.query.u)
     var params = {
       username: username
@@ -325,7 +325,7 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
         if (name != "") {
           res.status(200).send(JSON.stringify({result: "success", name: name}))
         } else {
-          res.status(400).send(JSON.stringify({result: "error", message: `Graph with id ${graphId} not found`}))
+          res.status(400).send(JSON.stringify({result: "error", message: `User with id ${username} not found`}))
         }
       },
       onError: function (error) {
@@ -335,7 +335,7 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
     })
   })
 
-  app.post('/api/requestApiKey', function (req,res) {
+  router.post('/requestApiKey', function (req,res) {
     var params = {
       user: req.body.u,
       key: uuid(),
@@ -385,7 +385,7 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
     })
   })
 
-  app.post("/api/logOutEverywhere", function (req, res) {
+  router.post("/logOutEverywhere", function (req, res) {
     var username = helpers.safeUserName(req.body.u)
     var count = 0
     validateApiKey(username, req.body.key, () => {
@@ -410,7 +410,7 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
 
   })
 
-  app.post("/api/setGraphName", function (req, res) {
+  router.post("/setGraphName", function (req, res) {
     var username = helpers.safeUserName(req.body.u)
     validateApiKey(username, req.body.key, () => {
       var graphId = helpers.safeGraphId(req.body.graphId)
@@ -443,7 +443,7 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
 
   })
 
-  app.post("/api/newGraph", function (req, res) {
+  router.post("/newGraph", function (req, res) {
     var username = helpers.safeUserName(req.body.u)
     validateApiKey(username, req.body.key, () => {
       var name = helpers.safeName(req.body.name)
@@ -492,7 +492,7 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
 
   })
 
-  app.post("/api/addNode", function (req, res) {
+  router.post("/addNode", function (req, res) {
     var username = helpers.safeUserName(req.body.u)
     validateApiKey(username, req.body.key, () => {
       var name = helpers.safeName(req.body.name)
@@ -538,7 +538,7 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
 
   })
 
-  app.post("/api/editNode", function (req, res) {
+  router.post("/editNode", function (req, res) {
     var username = helpers.safeUserName(req.body.u)
     validateApiKey(username, req.body.key, () => {
       var name = helpers.safeName(req.body.newName || req.body.name)
@@ -567,7 +567,7 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
 
   })
 
-  app.post("/api/deleteNode", function (req, res) {
+  router.post("/deleteNode", function (req, res) {
     var username = helpers.safeUserName(req.body.u)
     validateApiKey(username, req.body.key, () => {
       var type = helpers.safeType(req.body.type)
@@ -593,7 +593,7 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
 
   })
 
-  app.post("/api/deleteRelationship", function (req, res) {
+  router.post("/deleteRelationship", function (req, res) {
     var username = helpers.safeUserName(req.body.u)
     validateApiKey(username, req.body.key, () => {
       var name = helpers.safeRelType(req.body.name)
@@ -624,7 +624,7 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
 
   })
 
-  app.post("/api/addRelationship", function (req, res) {
+  router.post("/addRelationship", function (req, res) {
     var username = helpers.safeUserName(req.body.u)
     validateApiKey(username, req.body.key, () => {
       var name = helpers.safeRelType(req.body.name)
@@ -654,7 +654,7 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
     })
   })
 
-  app.post("/api/editRelationship", function (req, res) {
+  router.post("/editRelationship", function (req, res) {
     var username = helpers.safeUserName(req.body.u)
     validateApiKey(username, req.body.key, () => {
       var name = helpers.safeRelType(req.body.name)
@@ -685,30 +685,32 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
     })
   })
 
-  app.post("/api/registeruser", function (req, res) {
+  router.post("/registeruser", function (req, res) {
     var params = {
       name: helpers.safeName(req.body.name),
       username: helpers.safeUserName(req.body.u),
       hash: undefined
     }
     if (params.username === "INVALID USERNAME") {
-      res.send(JSON.stringify({result: "error", message: "Invalid username"}))
+      res.status(400).send(JSON.stringify({result: "error", message: "Invalid username"}))
       return
     }
     var exists = false
     session.run("MATCH (u:user {userId: {username}}) RETURN u",params)
     .subscribe({
       onNext: function (record) {
-	if (!exists) {
-		exists = true
-        	res.status(500).send(JSON.stringify({result: "error", message: "user already exists"}))
-	}
+      	if (!exists) {
+      		exists = true
+          console.log(record._fields[0])
+          res.status(400).send(JSON.stringify({result: "error", message: "User already exists"}))
+      	}
       },
       onCompleted: function () {
         if (!exists) {
           bcrypt.hash(req.body.p,10,(err, hash) => {
             if (err) {
               console.log(err)
+              res.status(500).send(JSON.stringify({result: "error", message: "Unexpected error. Please try again later. If the problem persists, contact a system administrator."}))
             } else {
               params.hash = hash
               session.run("CREATE (h:hashedpassword {userId: {username}, pwd: {hash}})<-[:password]-(u:user {userId: {username}, name: {name}})",params)
@@ -717,12 +719,12 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
                 },
                 onCompleted: function () {
                   res.status(200)
-                  res.send(JSON.stringify({username: params.username}))
+                  .send(JSON.stringify({username: params.username}))
                 },
                 onError: function (error) {
                   console.log(error)
                   res.status(500)
-                  res.send(JSON.stringify({result: "error", message: "Failed to add Relationship"}))
+                  .send(JSON.stringify({result: "error", message: "Failed to add user. Please try again later. If the problem persists, contact a system administrator."}))
                 }
               })
             }
@@ -733,12 +735,12 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
       onError: function (error) {
         console.log(error)
         res.status(500)
-        res.send(JSON.stringify({result: "error", message: "Failed to add user"}))
+        .send(JSON.stringify({result: "error", message: "Failed to add user"}))
       }
     })
   })
 
-  /*app.post('/api/closeDB', function(req, res) {
+  /*router.post('/closeDB', function(req, res) {
     res.set('Content-Type', 'application/json')
     if(req.body.message == 'R U ROBOT?') {
       driver.close()
@@ -747,7 +749,7 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
     return res.send(JSON.stringify({message: 'Didnt go in if'}))
   })*/
 
-  app.get('/api/*', function(req,res) {
+  router.get('/*', function(req,res) {
     res.set('Content-Type', 'application/json')
     .status(404)
     .send(JSON.stringify({
@@ -756,5 +758,5 @@ neo4j.createConnection(process.env.DBUSER, process.env.DBPASS, function(session)
     }))
   })
 
-  module.exports = app
+  module.exports = router
 })

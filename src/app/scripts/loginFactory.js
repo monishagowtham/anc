@@ -4,6 +4,7 @@ rtApp.factory('Login', function($http,Express) {
     username: undefined,
     key: undefined,
     graphs: [],
+    setRegister: function() {},
 
     login: (username, password, stayLoggedIn, callback, err)=>{
       var request = Express.requestFactory("requestApiKey")
@@ -32,7 +33,10 @@ rtApp.factory('Login', function($http,Express) {
         callback()
       },
       function onError(response) {
-          err()
+        if (response && response.data && response.data.message)
+        {
+          err(response.data.message)
+        }
       })
     },
 
