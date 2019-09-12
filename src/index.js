@@ -96,6 +96,8 @@ app.get('/assets/*', (req,res) => {
   })
 })
 
+app.use(express.static(path.join(__dirname, 'certbot')));
+
 // Define any additional routes before the next one
 
 app.get('/*', (req,res) => {
